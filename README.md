@@ -36,6 +36,10 @@ __phoneBook.js__, и мне понадобилось выбрать из неё 
 он же конструктор):  
 query, select, filterIn, filterEqual, sortBy, format и limit
 
-### Не обязательные задания (+2 к харизме, +3 к интеллекту)
+### Необязательное задание (+2 к харизме, +3 к интеллекту)
 
-Будет нереально круто, если вы реализуете два дополнительных условных оператора: or и and
+Будет нереально круто, если вы реализуете два дополнительных условных оператора:   
+or и and
+
+
+![](https://static50.cmtt.ru/tj_articles_2/kickstarter-potato-salad-party/31/ff2ckickstarter-potato-salad-party-5429083669e3b.jpg)
