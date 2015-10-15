@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports.query = function (collection) {
-    var validContact = clone(collection);
+    var validContact = cloneObj(collection);
     var len = arguments.length;
     for (var i = 1; i < len; i++) {
         arguments[i](validContact);
@@ -9,13 +9,18 @@ module.exports.query = function (collection) {
     return validContact;
 };
 
-function clone(obj) {
-    if (null == obj || "object" != typeof obj) return obj;
-    var copy = obj.constructor();
-    for (var attr in obj) {
-        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+function cloneObj(obj) {
+    if (typeof(obj) == 'object') {
+        var copy = obj.constructor();
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                copy[key] = cloneObj(obj[key]);
+            }
+        }
+        return copy;
+    } else {
+        return obj;
     }
-    return copy;
 }
 
 module.exports.reverse = function () {
@@ -54,7 +59,7 @@ module.exports.filterIn = function (field, filter) {
         var len = collection.length;
         var offset = 0;
         for (var i = 0; i < len; i++) {
-            var contact = collection[i-offset];
+            var contact = collection[i - offset];
             var countFilter = filter.length;
             var isValid = false;
             for (var j = 0; j < countFilter; j++) {
@@ -68,7 +73,7 @@ module.exports.filterIn = function (field, filter) {
                 offset++;
             }
         }
-    }
+    };
 };
 
 module.exports.sortBy = function (field, sort) {
@@ -77,7 +82,7 @@ module.exports.sortBy = function (field, sort) {
             var aField = a[field];
             var bField = b[field];
             var compareRes;
-            if (Number.isInteger(aField) && Number.isInteger(bField)) {
+            if (typeof(aField) == 'number' && typeof (bField) == 'number') {
                 compareRes = aField - bField;
             } else {
                 compareRes = aField.localeCompare(bField, 'en', {numeric: true});
@@ -87,18 +92,18 @@ module.exports.sortBy = function (field, sort) {
             } else {
                 return -compareRes;
             }
-        })
-    }
+        });
+    };
 };
 
 module.exports.format = function (field, func) {
     return function (collection) {
         var len = collection.length;
-        for (var i=0; i<len; i++) {
+        for (var i = 0; i < len; i++) {
             var contact = collection[i];
             contact[field] = func(contact[field]);
         }
-    }
+    };
 };
 
 module.exports.filterEqual = function (field, value) {
