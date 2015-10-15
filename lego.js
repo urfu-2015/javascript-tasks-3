@@ -11,14 +11,14 @@ module.exports.query = function (collection) {
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
-        return collection.reverse();
+        return collection.slice().reverse();
     };
 };
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        return collection.splice(0, n);
+        return collection.slice(0, n);
     };
 };
 
@@ -30,7 +30,9 @@ module.exports.select = function () {
         return collection.map(function (contact) {
             var out = {};
             selectors.forEach(selector => {
-                out[selector] = contact[selector];
+                if (selector in contact) {
+                    out[selector] = contact[selector];
+                }
             });
             return out;
         });
@@ -55,7 +57,7 @@ module.exports.sortBy = function (selector, type) {
     return function (collection) {
         type = type === 'asc' ? 1 : -1;
         return collection.sort(function (contact1, contact2) {
-            if (contact1[selector] <= contact2[selector]) {
+            if (contact1[selector] > contact2[selector]) {
                 return type;
             } else {
                 return -type;
@@ -75,19 +77,39 @@ module.exports.format = function (selector, f) {
 
 // Будет круто, если реализуете операторы:
 // or и and
-module.exports.or = function (f1, f2) {
-    return function (collection) {
-        var out = f1(collection).concat(f2(collection));
-        var and = f1(f2(collection));
-        and.forEach(value => {
-            out.splice(out.indexOf(value), 1);
-        });
-        return out;
-    };
+module.exports.or = or;
+module.exports.and = and;
+
+function and() {
+    if (arguments.length === 0 || arguments.length === 1) {
+        return collection => [];
+    } else {
+        var functions = [].slice.call(arguments);
+        return function (collection) {
+            functions.forEach(f => {
+                collection = f(collection);
+            });
+            return collection;
+        };
+    }
 };
 
-module.exports.and = function (f1, f2) {
-    return function (collection) {
-        return f1(f2(collection));
-    };
+function or() {
+    if (arguments.length === 0) {
+        return collection => [];
+    } else if (arguments.length === 1) {
+        return collection => arguments[0](collection);
+    } else {
+        var args = [].slice.call(arguments);
+        return function (collection) {
+            var result1 = or.apply(null, args.splice(0, args.length / 2))(collection);
+            var result2 = or.apply(null, args)(collection);
+            var out = result1.concat(result2);
+            var and = result1.filter(v => Boolean(result2.indexOf(v) + 1));
+            and.forEach(value => {
+                out.splice(out.indexOf(value), 1);
+            });
+            return out;
+        };
+    }
 };
