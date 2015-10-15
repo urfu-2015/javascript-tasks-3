@@ -10,7 +10,7 @@ module.exports.query = function (collection) {
 };
 
 function cloneObj(obj) {
-    if (typeof(obj) == 'object') {
+    if (typeof (obj) == 'object') {
         var copy = obj.constructor();
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -82,7 +82,7 @@ module.exports.sortBy = function (field, sort) {
             var aField = a[field];
             var bField = b[field];
             var compareRes;
-            if (typeof(aField) == 'number' && typeof (bField) == 'number') {
+            if (typeof (aField) == 'number' && typeof (bField) == 'number') {
                 compareRes = aField - bField;
             } else {
                 compareRes = aField.localeCompare(bField, 'en', {numeric: true});
