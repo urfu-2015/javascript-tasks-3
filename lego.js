@@ -18,6 +18,9 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
+        if (n < 0) {
+            throw new new RangeError('Should`t be limited array negative number.');
+        }
         return collection.slice(0, n);
     };
 };
@@ -81,7 +84,7 @@ module.exports.or = or;
 module.exports.and = and;
 
 function and() {
-    if (arguments.length === 0 || arguments.length === 1) {
+    if (arguments.length === 0) {
         return collection => [];
     } else {
         var functions = [].slice.call(arguments);
