@@ -7,14 +7,14 @@ export function filterEqual(field, value, collection) {
 }
 
 export function sortBy(field, order, collection) {
-    return [...collection].sort((itemA, itemB) => {
+    return [...collection].sort((a, b) => {
         if (order === 'dsc') {
-            [itemA, itemB] = [itemB, itemA];
+            [a, b] = [b, a];
         }
-        if (itemA[field] > itemB[field]) {
+        if (a[field] > b[field]) {
             return 1;
         }
-        if (itemA[field] < itemB[field]) {
+        if (a[field] < b[field]) {
             return -1;
         }
         // a must be equal to b
