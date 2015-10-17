@@ -1,111 +1,147 @@
 'use strict';
 
 module.exports.query = function (collection) {
-    var validContact = cloneObj(collection);
-    var len = arguments.length;
-    for (var i = 1; i < len; i++) {
-        arguments[i](validContact);
-    }
-    return validContact;
+    var operators = [].slice.call(arguments);
+    var newCollection = collection;
+    operators.shift();
+    operators.forEach(function (operator) {
+        newCollection = operator(newCollection);
+    });
+    return newCollection;
 };
 
-function cloneObj(obj) {
-    if (typeof (obj) == 'object') {
-        var copy = obj.constructor();
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                copy[key] = cloneObj(obj[key]);
-            }
-        }
-        return copy;
-    } else {
-        return obj;
-    }
+function cloneCollection(collection) {
+    var newCollection = [];
+    collection.forEach(function(contact) {
+        var fields = Object.keys(contact);
+        var newContact = {};
+        fields.forEach(function(field) {
+            newContact[field] = contact[field];
+        });
+        newCollection.push(newContact);
+    });
+    return newCollection;
 }
 
 module.exports.reverse = function () {
     return function (collection) {
-        return collection.reverse();
+        var newCollection = cloneCollection(collection);
+        return newCollection.reverse();
     };
 };
 
 module.exports.limit = function (n) {
     return function (collection) {
-        collection.splice(n);
-        return collection;
+        return collection.slice(0, n);
     };
 };
 
 module.exports.select = function () {
-    var args = [].slice.call(arguments);
+    var fields = [].slice.call(arguments);
     return function (collection) {
-        var countCont = collection.length;
-        for (var i = 0; i < countCont; i++) {
-            var contact = collection[i];
-            var fields = Object.keys(contact);
-            var countFields = fields.length;
-            for (var j = 0; j < countFields; j++) {
-                var field = fields[j];
-                if (args.indexOf(field) < 0) {
+        var newCollection = cloneCollection(collection);
+        newCollection.forEach(function (contact) {
+            var contactFields = Object.keys(contact);
+            contactFields.forEach(function (field) {
+                if (fields.indexOf(field) < 0) {
                     delete contact[field];
                 }
-            }
-        }
-    };
+            })
+        });
+        return newCollection;
+    }
 };
 
 module.exports.filterIn = function (field, filter) {
     return function (collection) {
-        var len = collection.length;
-        var offset = 0;
-        for (var i = 0; i < len; i++) {
-            var contact = collection[i - offset];
-            var countFilter = filter.length;
-            var isValid = false;
-            for (var j = 0; j < countFilter; j++) {
-                if (contact[field] === filter[j]) {
-                    isValid = true;
-                    break;
-                }
-            }
-            if (!isValid) {
-                collection.splice(i - offset, 1);
-                offset++;
-            }
-        }
-    };
+        return collection.filter(function (contact) {
+            return filter.indexOf(contact[field]) > -1;
+        });
+    }
 };
 
 module.exports.sortBy = function (field, sort) {
     return function (collection) {
-        collection.sort(function (a, b) {
+        var newCollection = cloneCollection(collection);
+        newCollection.sort(function (a, b) {
             var aField = a[field];
             var bField = b[field];
             var compareRes;
-            if (typeof (aField) == 'number' && typeof (bField) == 'number') {
+            if (typeof aField == 'number' && typeof bField == 'number') {
                 compareRes = aField - bField;
             } else {
                 compareRes = aField.localeCompare(bField, 'en', {numeric: true});
             }
-            if (sort == 'asc') {
-                return compareRes;
-            } else {
-                return -compareRes;
-            }
+            return sort === 'asc' ? compareRes : -compareRes;
         });
+        return newCollection;
     };
 };
 
 module.exports.format = function (field, func) {
     return function (collection) {
-        var len = collection.length;
-        for (var i = 0; i < len; i++) {
-            var contact = collection[i];
+        var newCollection = cloneCollection(collection);
+        newCollection.forEach(function (contact) {
             contact[field] = func(contact[field]);
-        }
+        });
+        return newCollection;
     };
 };
 
 module.exports.filterEqual = function (field, value) {
     return this.filterIn(field, [value]);
 };
+
+
+module.exports.and = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        var resCollections = deeperQuery(collection, operators);
+        return merge(resCollections, and);
+    };
+};
+
+module.exports.or = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        return merge(deeperQuery(collection, operators), or);
+    }
+};
+
+function deeperQuery(collection, operators) {
+    if (operators.length == 0) {
+        return collection;
+    }
+    var resCollections = [];
+    operators.forEach(function (operator) {
+        resCollections.push(operator(collection));
+    });
+    return resCollections;
+}
+
+function merge(resCollections, func) {
+    var result = resCollections.shift();
+    resCollections.forEach(function (collection) {
+        result = func(result, collection);
+    });
+    return result;
+}
+
+function and(result, collection) {
+    var mapCollection = collection.map(function (contact) {
+        return JSON.stringify(contact);
+    });
+    return result.filter(function (contact) {
+        return mapCollection.indexOf(JSON.stringify(contact)) > -1;
+    });
+}
+
+function or(result, collection) {
+    var mapResult = result.map(function (contact) {
+        return JSON.stringify(contact);
+    });
+    return result.concat(collection.filter(function (contact) {
+        return mapResult.indexOf(JSON.stringify(contact)) == -1;
+    }));
+}
+
