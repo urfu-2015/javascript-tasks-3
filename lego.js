@@ -22,14 +22,14 @@ module.exports.limit = function (limit) {
     // Магия
     return function (collection) {
         return collection.slice(0, limit);
-    }
+    };
 };
 
 module.exports.select = function () {
     var selectors = [].slice.call(arguments);
 
     return function (collection) {
-        return collection.map( function (item) {
+        return collection.map(function (item) {
             var result = {};
 
             for (var i = 0; i < selectors.length; i++) {
@@ -38,8 +38,8 @@ module.exports.select = function () {
                 }
             }
             return result;
-        })
-    }
+        });
+    };
 };
 
 module.exports.filterIn = function (filteredField, filter) {
@@ -51,16 +51,16 @@ module.exports.filterIn = function (filteredField, filter) {
                 }
             }
             return false;
-        })
-    }
+        });
+    };
 };
 
 module.exports.filterEqual = function (filteredField, filter) {
     return function (collection) {
         return collection.filter(function (value) {
             return value[filteredField] === filter;
-        })
-    }
+        });
+    };
 };
 
 module.exports.sortBy = function (sortField, sortType) {
@@ -79,20 +79,17 @@ module.exports.sortBy = function (sortField, sortType) {
                     return 1;
                 }
             }
-        })
-    }
+        });
+    };
 };
 
 module.exports.format = function (formattedField, func) {
-    return function(collection) {
+    return function (collection) {
         return collection.map(function (item) {
-           /* var result = {};
-            result = item;
-            result*/
             item[formattedField] = func(item[formattedField]);
             return item;
-        })
-    }
+        });
+    };
 };
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
