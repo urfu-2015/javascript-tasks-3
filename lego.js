@@ -1,8 +1,16 @@
 'use strict';
 
 // Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection /* операторы через запятую */) {
-
+module.exports.query = function (collection) {
+    var argLength = arguments.length;
+    if (argLength === 1) {
+        return collection;
+    }
+    var result = (JSON.parse(JSON.stringify(collection)));
+    for (var i = 1; i < argLength; i++) {
+        result = arguments[i](collection);
+    }
+    return result;
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -17,7 +25,10 @@ module.exports.reverse = function () {
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
-    // Магия
+    return function (collection) {
+        var changedCollection = collection.slice(0, n);
+        return changedCollection;
+    };
 };
 
 // Вам необходимо реализовать остальные операторы:
@@ -25,3 +36,88 @@ module.exports.limit = function (n) {
 
 // Будет круто, если реализуете операторы:
 // or и and
+
+module.exports.select = function () {
+    var fields = [].slice.call(arguments);
+    return function (collection) {
+        var changedCollection = collection.filter(function (item) {
+            for (var i = 0; i < fields.length; i++) {
+                if (Object.keys(item).indexOf(fields[i]) === -1) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        return changedCollection;
+    };
+};
+
+module.exports.filterIn = function (field, values) {
+    return function (collection) {
+        var changedCollection = collection.filter(function (item) {
+            for (var i = 0; i < values.length; i++) {
+                if (item[field] === values[i]) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        return changedCollection;
+    };
+};
+
+module.exports.filterEqual = function (field, value) {
+    return function (collection) {
+        var changedCollection = collection.filter(function (item) {
+            if (item[field] === value) {
+                return true;
+            }
+            return false;
+        });
+        return changedCollection;
+    };
+};
+
+module.exports.sortBy = function (field, option) {
+    return function (collection) {
+        var changedCollection = collection.sort(function (a, b) {
+            return a[field] - b[field];
+        });
+        return option === 'asc' ? changedCollection : changedCollection.reverse();
+    };
+};
+
+module.exports.format = function (field, func) {
+    return function (collection) {
+        var changedCollection = collection.map(function (item) {
+            item[field] = func(item[field]);
+            return item;
+        });
+        return changedCollection;
+    };
+};
+
+module.exports.or = function () {
+    var args = [].slice.call(arguments);
+    return function (collection) {
+        var changedCollection = [];
+        for (var i = 0; i < args.length; i++) {
+            var tempCollection = args[i](collection);
+            var changedCollection = changedCollection.concat(tempCollection.filter(function (item) {
+                return changedCollection.indexOf(item) < 0;
+            }));
+        }
+        return changedCollection;
+    };
+};
+
+module.exports.and = function () {
+    var args = [].slice.call(arguments);
+    return function (collection) {
+        var changedCollection = collection.slice();
+        for (var i = 0; i < args.length; i++) {
+            changedCollection = args[i](changedCollection);
+        }
+        return changedCollection;
+    };
+};
