@@ -143,28 +143,67 @@ module.exports.format = function (arg, func) {
 // or и and
 
 function areEqual(firstObj, secondObj) {
-    for (var i in Object.keys(firstObj)) {
-        if (firstObj[i] !== secondObj[i]) {
+    var keys = Object.keys(firstObj);
+    for (var i in keys) {
+        if (firstObj[keys[i]] !== secondObj[keys[i]]) {
             return false;
         }
     }
     return true;
 }
 
-// TODO обернуть, допилить для 2+
-module.exports.and = function (firstCollection, secondCollection) {
-    var resultCollection = [];
-    for (var i in firstCollection) {
-        for (var j in secondCollection) {
-            if (areEqual(firstCollection[i], secondCollection[j])) {
-                resultCollection.push(firstCollection[i]);
-                break;
+module.exports.and = function () {
+    if (arguments.length === 0) {
+        console.error('Нет данных для пересечения!');
+        return;
+    }
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        var tempCollection1 = operators[0](collection);
+        var arrOfIntersected = new Array(tempCollection1.length);
+        for (var i = 1; i < operators.length; i++) {
+            var tempCollection2 = operators[i](collection);
+            for (var j in tempCollection1) {
+                for (var k in tempCollection2) {
+                    if (areEqual(tempCollection1[j], tempCollection2[k])) {
+                        arrOfIntersected[j] = true;
+                        break;
+                    }
+                }
             }
         }
-    }
-    return resultCollection;
+        var resultCollection = [];
+        for (var i in arrOfIntersected) {
+            if (arrOfIntersected[i]) {
+                resultCollection.push(tempCollection1[i]);
+            }
+        }
+        return resultCollection;
+    };
 };
 
-module.exports.or = function (func) {
-    // Магия
+module.exports.or = function () {
+    if (arguments.length === 0) {
+        console.error('Нет данных для объединения!');
+        return;
+    }
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        var resultCollection = operators[0](collection);
+        for (var i = 1; i < operators.length; i++) {
+            var tempCollection = operators[i](collection);
+            for (var j in tempCollection) {
+                var isNotInCollection = true;
+                for (var k in resultCollection) {
+                    if (areEqual(resultCollection[k], tempCollection[j])) {
+                        isNotInCollection = false;
+                    }
+                }
+                if (isNotInCollection) {
+                    resultCollection.push(tempCollection[j]);
+                }
+            }
+        }
+        return resultCollection;
+    };
 };
