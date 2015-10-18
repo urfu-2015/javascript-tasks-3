@@ -20,7 +20,7 @@ module.exports.reverse = function () {
         var changedCollection = collection.reverse();
 
         // Возращаем изменённую коллекцию
-        return collection.reverse();
+        return changedCollection;
     };
 };
 
