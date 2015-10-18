@@ -10,7 +10,6 @@ module.exports.query = function (collection) {
         return Object.assign({}, item);;
     });
 
-
     for (var i = 1; i < arguments.length; i ++) {
         legoCollection = arguments[i](legoCollection);
     }
@@ -87,13 +86,22 @@ module.exports.limit = function (n) {
     };
 };
 
-module.exports.or = function (conditionFirst, conditionSecond) {
+module.exports.or = function () {
+    var conditions = [].slice.call(arguments);
+
     return function (collection) {
-        return conditionFirst(collection).concat(conditionSecond(collection));
+        return conditions.map(function (item) {
+            return item(collection);
+        });
     };
 };
-module.exports.and = function (conditionFirst, conditionSecond) {
+
+module.exports.and = function () {
+    var conditions = [].slice.call(arguments);
+
     return function (collection) {
-        return conditionFirst(conditionSecond(collection));
+        return conditions.reduce(function (collection, item) {
+            return item(collection);
+        }, collection);
     };
 };
