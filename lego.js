@@ -2,7 +2,7 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) {
-    var operators = Object.keys(arguments).map(key => arguments[key]).slice(1);
+    var operators = [].slice.call(arguments).slice(1);
     return operators.reduce(function (currentCollection, operator) {
         return operator(currentCollection);
     },
@@ -27,7 +27,7 @@ module.exports.limit = function (n) {
 };
 
 module.exports.select = function () {
-    var fields = Object.keys(arguments).map(key => arguments[key]);
+    var fields = [].slice.call(arguments);
     return collection => {
         return collection.map(contact => {
             var result = {};
@@ -59,7 +59,7 @@ module.exports.sortBy = function (field, order) {
     if (!(order === 'asc' || order === 'desc')) {
         throw new TypeError('Порядок сортировки должен быть asc или desc');
     }
-    var compareContact = function (contact1, contact2) {
+    function compareContact(contact1, contact2) {
         if (contact1[field] > contact2[field]) {
             return 1;
         }
