@@ -6,12 +6,12 @@ module.exports.query = function (collection /* операторы через з�
         console.error('Телефонная книга пуста!');
         return;
     }
-    //var resultCollection = arguments[1](collection);
-    //for (var i in arguments.slice(2)) {
-    //    resultCollection = arguments[i](resultCollection);
-    //}
-    console.log(arguments[3](collection));
-    //return arguments[2](collection);
+    var resultCollection = collection;
+    for (var i = 1; i < arguments.length; i++) {
+        resultCollection = arguments[i](resultCollection);
+    }
+    console.log(resultCollection);
+    return resultCollection;
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -20,7 +20,7 @@ module.exports.reverse = function () {
         var changedCollection = collection.reverse();
 
         // Возращаем изменённую коллекцию
-        return changedCollection;
+        return collection.reverse();
     };
 };
 
@@ -33,7 +33,7 @@ module.exports.limit = function (n) {
         }
         var resultCollection = [];
         for (var i = 0; i < n; i++) {
-            resultCollection.push(collection[i])
+            resultCollection.push(collection[i]);
         }
         return resultCollection;
     };
@@ -61,16 +61,13 @@ module.exports.select = function () {
 };
 
 module.exports.filterIn = function (param, values) {
-    if (arguments.length === 0) {
-        console.error('Нет параметров для фильтра!');
-    }
-    if (values.length === 0) {
-        console.error('Не указаны значения для фильтра!');
+    if (arguments.length === 0 || arguments.length === 1) {
+        console.error('Недостаточно параметров для фильтра!');
         return;
     }
-    return function(collection) {
+    return function (collection) {
         var resultCollection = [];
-        for (var i in collection){
+        for (var i in collection) {
             for (var j in values) {
                 if (collection[i][param] === values[j]) {
                     resultCollection.push(collection[i]);
@@ -78,68 +75,68 @@ module.exports.filterIn = function (param, values) {
             }
         }
         return resultCollection;
-    }
+    };
 };
 
 module.exports.filterEqual = function (param, value) {
-    if (arguments.length === 0) {
-        console.error('Нет параметров для фильтра!');
-    }
-    if (values.length === 0) {
-        console.error('Не указано значение для фильтра!');
+    if (arguments.length === 0 || arguments.length === 1) {
+        console.error('Недостаточно параметров для фильтра!');
         return;
     }
-    return function(collection) {
-        var  resultCollection = [];
-        for (var i in collection) {
-            if (collection[i][param] === value) {
-                resultCollection.push(collection[i]);
-            }
-        }
-        return resultCollection;
-    }
+    return module.exports.filterIn(param, [value]);
 };
 
-function findMin(collection, tempMin, param) {
+function findMin(collection, param) {
     var result = 0;
+    var tempMin = collection[result];
     for (var i in collection) {
-        if (collection[i][param] < tempMin[param]) {
+        if (collection[i][param] <= tempMin[param]) {
             tempMin = collection[i];
             result = i;
         }
     }
-    return i;
+    return result;
 }
 
 module.exports.sortBy = function (param, order) {
-    if (arguments.length === 0) {
-        console.error('Нет параметров для сортировки!');
+    if (arguments.length === 0 || arguments.length === 1) {
+        console.error('Недосаточно параметров для сортировки!');
         return;
     }
-    //if (arguments[1] !== 'asc' || arguments[1] !== 'desc') {
-    //    console.error('Несуществующий порядок сортировки!', order !== 'acs', arguments[1] !== 'asc');
-    //    return;
-    //}
-    return function(collection) {
+    if (order !== 'asc' && order !== 'desc') {
+        console.error('Несуществующий порядок сортировки!');
+        return;
+    }
+    return function (collection) {
         var resultCollection = [];
-        // ищем самый маленький элемент. если asc, push, если desc, unshift
         var minElementIndex = 0;
-        collection = collection.splice(0, 1);
-        for (var i = 0; i < collection.length; i++) {
-            minElementIndex = findMin(collection, collection[minElementIndex], param);
+        var minElement = collection[0];
+        var unchangeableLen = collection.length;
+        for (var i = 0; i < unchangeableLen; i++) {
+            minElementIndex = findMin(collection, param);
+            minElement = collection[minElementIndex];
             if (order === 'asc') {
-                resultCollection.push(collection[minElementIndex]);
+                resultCollection.push(minElement);
             } else {
-                resultCollection.unshift(collection[minElementIndex]);
+                resultCollection.unshift(minElement);
             }
-            collection = collection.splice(collection[minElementIndex], 1);
+            collection.splice(minElementIndex, 1);
         }
         return resultCollection;
-    }
+    };
 };
 
 module.exports.format = function (arg, func) {
-    // Магия
+    if (arguments.length === 0) {
+        console.error('Нет параметров для форматирования!');
+        return;
+    }
+    return function (collection) {
+        for (var i in collection) {
+            collection[i][arg] = func(collection[i][arg]);
+        }
+        return collection;
+    };
 };
 
 // Будет круто, если реализуете операторы:
@@ -154,7 +151,7 @@ function areEqual(firstObj, secondObj) {
     return true;
 }
 
-// TODO обернуть
+// TODO обернуть, допилить для 2+
 module.exports.and = function (firstCollection, secondCollection) {
     var resultCollection = [];
     for (var i in firstCollection) {
@@ -168,6 +165,6 @@ module.exports.and = function (firstCollection, secondCollection) {
     return resultCollection;
 };
 
-module.exports.or = function (arg, func) {
+module.exports.or = function (func) {
     // Магия
 };
