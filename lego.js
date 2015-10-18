@@ -100,7 +100,7 @@ function findMin(collection, param) {
 
 module.exports.sortBy = function (param, order) {
     if (arguments.length === 0 || arguments.length === 1) {
-        console.error('Недосаточно параметров для сортировки!');
+        console.error('Недостаточно параметров для сортировки!');
         return;
     }
     if (order !== 'asc' && order !== 'desc') {
