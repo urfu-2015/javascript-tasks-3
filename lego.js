@@ -64,7 +64,7 @@ module.exports.sortBy = function (field, order) {
             return 1;
         }
         return -1;
-    };
+    }
     return function (collection) {
         if (order === 'asc') {
             return collection.sort(compareContact);
