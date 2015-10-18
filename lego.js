@@ -8,7 +8,7 @@ module.exports.query = function (collection) {
     }
     var result = (JSON.parse(JSON.stringify(collection)));
     for (var i = 1; i < argLength; i++) {
-        result = arguments[i](collection);
+        result = arguments[i](result);
     }
     return result;
 };
