@@ -2,6 +2,7 @@
 
 :sos: [Как создать Pull Request](https://github.com/urfu-2015/guides/blob/master/how-to-pull-request.md)  
 :warning: При создании PullRequest'а не забудьте указать ваши имя и фамилию.
+:warning: Дедлайн 19.10.2015 23:59:59.999
 
 ### Общие требования
 
