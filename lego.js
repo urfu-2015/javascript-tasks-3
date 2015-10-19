@@ -91,7 +91,7 @@ module.exports.limit = function () {
 
 module.exports.reverse = function () {
     return function (collection) {
-        return collection.slice().reverse();
+        return collection.reverse();
     };
 };
 
