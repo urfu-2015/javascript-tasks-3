@@ -10,7 +10,7 @@ export const reverse = curry(function (collection) {
 });
 
 // Оператор limit, который выбирает первые N записей
-export const limit = curry((n, collection) => collection.slice(0, n), 2);
+export const limit = curry(_.limit);
 
 export const select = (...fields) => (
     collection => collection.map(curry(_.select)(fields))

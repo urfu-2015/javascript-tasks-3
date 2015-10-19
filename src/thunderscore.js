@@ -8,7 +8,7 @@ export function filterEqual(field, value, collection) {
 
 export function sortBy(field, order, collection) {
     return [...collection].sort((a, b) => {
-        if (order === 'dsc') {
+        if (order === 'desc') {
             [a, b] = [b, a];
         }
         if (a[field] > b[field]) {
@@ -32,7 +32,13 @@ export function format(field, fieldMapper, collection) {
 export function select(fields, obj) {
     const computed = {};
     for (let field of fields) {
-        computed[field] = obj[field];
+        if (obj[field] != undefined) {
+            computed[field] = obj[field];
+        }
     }
     return computed;
+}
+
+export function limit(n, collection) {
+    return collection.slice(0, n > 0 ? n : 0)
 }
