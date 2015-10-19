@@ -2,6 +2,14 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
+    var phoneBook = collection;
+
+	for (var i = 1; i < arguments.length; i++) {
+		phoneBook = arguments[i](phoneBook);
+	}
+	console.log(phoneBook);
+	return phoneBook;
+};
 
 };
 
@@ -17,6 +25,9 @@ module.exports.reverse = function () {
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
+     return function (collection){
+    	return collection.slice(0, n);
+    };
     // Магия
 };
 
