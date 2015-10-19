@@ -7,7 +7,6 @@ module.exports.query = function (collection /* операторы через з�
 	for (var i = 1; i < arguments.length; i++) {
 		phoneBook = arguments[i](phoneBook);
 	}
-	console.log(phoneBook);
 	return phoneBook;
 };
 
@@ -37,12 +36,13 @@ module.exports.select = function (){
 		for (var i = 0; i < collection.length; i++) {
 			var record = collection[i];
 			var newRecord = {};
+			var keys = Object.keys(record);
 
-			for (var key in record) {
+			keys.forEach(function (key) {
 				if (values.indexOf(key) !== -1) {
 					newRecord[key] = record[key];
 				}
-			}
+			});
 			newPhoneBook.push(newRecord);
 		}
 
@@ -77,8 +77,7 @@ module.exports.sortBy = function (key, method) {
 			}
 			if (elementFirst[key] > elementSecond[key]) {
 				return 1;
-			}
-			return 0; 
+			} 
 		});
 		if (method === 'desc') {
 			return newPhoneBook.reverse();
