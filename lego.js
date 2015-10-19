@@ -110,7 +110,14 @@ module.exports.format = function (field, func) {
     return formater;
 };
 
-module.exports.filterEqual = function () {
+module.exports.filterEqual = function (field, value) {
+    isPhoneBookField(field);
+
+    var filter = {
+        field: field,
+        value: value
+    };
+    return filter;
 };
 
 module.exports.or = function () {
