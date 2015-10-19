@@ -4,7 +4,7 @@
 var phoneBook = require('./phoneBook');
 
 // Подключаем волшебный конструктор запросов
-var lego = require('./lego');
+var lego = require('./dist/lego');
 
 // Мы хотим найти подходящих друзей для вечеринки
 var result = lego.query(
@@ -32,7 +32,7 @@ var result = lego.query(
 
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
 
-var result = lego.query(
+/*var result = lego.query(
     phoneBook,
 
     // Выбираем всех парней, которые любят картофель, и всех девушек, которые любят яблоки
@@ -46,4 +46,4 @@ var result = lego.query(
             lego.filterIn('favoriteFruit', ['Яблоко'])
         )
     )
-);
+);*/

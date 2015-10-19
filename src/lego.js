@@ -1,24 +1,29 @@
-'use strict';
+import {curry, pipe} from './Uganda';
+import * as _ from './thunderscore';
 
 // Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection /* операторы через запятую */) {
-
-};
+export const query = pipe;
 
 // Оператор reverse, который переворачивает коллекцию
-module.exports.reverse = function () {
-    return function (collection) {
-        var changedCollection = collection.reverse();
-
-        // Возращаем изменённую коллекцию
-        return changedCollection;
-    };
-};
+export const reverse = curry(function (collection) {
+    return [...collection].reverse();
+});
 
 // Оператор limit, который выбирает первые N записей
-module.exports.limit = function (n) {
-    // Магия
-};
+export const limit = curry(_.limit);
+
+export const select = (...fields) => (
+    collection => collection.map(curry(_.select)(fields))
+);
+
+export const filterIn = curry(_.filterIn);
+
+export const filterEqual = curry(_.filterEqual);
+
+export const sortBy = curry(_.sortBy);
+
+export const format = curry(_.format);
+
 
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
