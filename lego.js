@@ -21,7 +21,7 @@ module.exports.reverse = function () {
 module.exports.select = function () {
     var fields = [];
     for (var i = 0; i < arguments.length; i++) {
-        fields[i]=arguments[i];
+        fields[i] = arguments[i];
     }
     return function (collection) {
         var changedCollection = [];
@@ -82,7 +82,7 @@ module.exports.format = function (field, modifyingFunction) {
                 modifyingFunction(changedCollection[i][field]);
         }
         return changedCollection;
-    }
+    };
 };
 
 module.exports.limit = function (n) {
@@ -95,10 +95,10 @@ module.exports.limit = function (n) {
             changedCollection[i] = copyRecord(collection[i]);
         }
         return changedCollection;
-    }
+    };
 };
 
-function copyRecord (record) {
+function copyRecord(record) {
     var copy = {};
     var keys = Object.keys(record);
     for (var i = 0; i < keys.length; i++) {
@@ -107,7 +107,7 @@ function copyRecord (record) {
     return copy;
 }
 
-function copyCollection (collection) {
+function copyCollection(collection) {
     var copy = [];
     for (var i = 0; i < collection.length; i++) {
         copy[i] = copyRecord(collection[i]);
@@ -115,7 +115,7 @@ function copyCollection (collection) {
     return copy;
 }
 
-function compareRecords (field, order) {
+function compareRecords(field, order) {
     return function (a, b) {
         var sign = (order === 'asc') ? 1 : -1;
         if (a[field] < b[field]) {
