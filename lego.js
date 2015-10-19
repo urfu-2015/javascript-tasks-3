@@ -63,12 +63,17 @@ module.exports.query = function (collection, fields, filter, sorter, formater, l
 };
 
 module.exports.select = function () {
-    var arg = arguments || phoneBookFields;
+    if (!arguments.length) {
+        throw new Error('no selected fields');
+    }
     var fields = [];
 
-    for (var i = 0, l = arg.length; i < l; i++) {
-        isPhoneBookField(arg[i]);
-        fields.push(arg[i]);
+    for (var i = 0, l = arguments.length; i < l; i++) {
+        if (arguments[i] === '*'){
+            return phoneBookFields;
+        }
+        isPhoneBookField(arguments[i]);
+        fields.push(arguments[i]);
     }
     return fields;
 };
