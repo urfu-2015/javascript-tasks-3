@@ -142,7 +142,7 @@ module.exports.or = function (query1, query2) {
         }
         return changedCollection;
     };
-}
+};
 
 module.exports.and = function (query1, query2) {
     return function (collection) {
@@ -158,7 +158,7 @@ module.exports.and = function (query1, query2) {
         }
         return changedCollection;
     };
-}
+};
 
 function recordInCollection(record, collection) {
     for (var i = 0; i < collection.length; i++) {
