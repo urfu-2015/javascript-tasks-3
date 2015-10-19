@@ -1,11 +1,14 @@
 'use strict';
 
-// Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
+    var changedCollection = copyCollection(collection);
+    for (var i = 1; i < arguments.length; i++) {
+        changedCollection = (arguments[i])(changedCollection);
+    }
 
+    return changedCollection;
 };
 
-// Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
         var changedCollection = collection.reverse();
@@ -15,13 +18,115 @@ module.exports.reverse = function () {
     };
 };
 
-// Оператор limit, который выбирает первые N записей
-module.exports.limit = function (n) {
-    // Магия
+module.exports.select = function () {
+    var fields = [];
+    for (var i = 0; i < arguments.length; i++) {
+        fields[i]=arguments[i];
+    }
+    return function (collection) {
+        var changedCollection = [];
+        for (var i = 0; i < collection.length; i++) {
+            var changedRecord = {};
+            var record = collection[i];
+            for (var j = 0; j < fields.length; j++) {
+                changedRecord[fields[j]] = record[fields[j]];
+            }
+            changedCollection[i] = changedRecord;
+        }
+        return changedCollection;
+    };
 };
 
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
+module.exports.filterIn = function (field, values) {
+    return function (collection) {
+        var changedCollection = [];
+        for (var i = 0; i < collection.length; i++) {
+            var isMatching = false;
+            for (var j = 0; j < values.length; j++) {
+                if (collection[i][field] === values[j]) {
+                    isMatching = true;
+                    break;
+                }
+            }
+            if (isMatching) {
+                changedCollection.push(copyRecord(collection[i]));
+            }
+        }
+        return changedCollection;
+    };
+};
+
+module.exports.filterEqual = function (field, value) {
+    return function (collection) {
+        var values = [];
+        values.push(value);
+        var filterEq = filterIn(field, values);
+        return filterEq(collection);
+    };
+};
+
+module.exports.sortBy = function (field, order) {
+    return function (collection) {
+        var changedCollection = copyCollection(collection);
+        changedCollection.sort(compareRecords(field, order));
+        return changedCollection;
+    };
+};
+
+module.exports.format = function (field, modifyingFunction) {
+    return function (collection) {
+        var changedCollection = [];
+        for (var i = 0; i < collection.length; i++) {
+            changedCollection[i] = copyRecord(collection[i]);
+            changedCollection[i][field] =
+                modifyingFunction(changedCollection[i][field]);
+        }
+        return changedCollection;
+    }
+};
+
+module.exports.limit = function (n) {
+    return function (collection) {
+        var changedCollection = [];
+        for (var i = 0; i < n; i++) {
+            if (collection[i] === undefined) {
+                break;
+            }
+            changedCollection[i] = copyRecord(collection[i]);
+        }
+        return changedCollection;
+    }
+};
+
+function copyRecord (record) {
+    var copy = {};
+    var keys = Object.keys(record);
+    for (var i = 0; i < keys.length; i++) {
+        copy[keys[i]] = record[keys[i]];
+    }
+    return copy;
+}
+
+function copyCollection (collection) {
+    var copy = [];
+    for (var i = 0; i < collection.length; i++) {
+        copy[i] = copyRecord(collection[i]);
+    }
+    return copy;
+}
+
+function compareRecords (field, order) {
+    return function (a, b) {
+        var sign = (order === 'asc') ? 1 : -1;
+        if (a[field] < b[field]) {
+            return -1 * sign;
+        }
+        if (a[field] > b[field]) {
+            return 1 * sign;
+        }
+        return 0;
+    };
+}
 
 // Будет круто, если реализуете операторы:
 // or и and
