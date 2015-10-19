@@ -1,8 +1,10 @@
 'use strict';
 
+var sortOrder = { asc: 1, desc: -1 };
+
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) {
-    var operators = [].slice.call(arguments).slice(1);
+    var operators = [].slice.call(arguments, 1);
     return operators.reduce(function (currentCollection, operator) {
         return operator(currentCollection);
     },
@@ -30,13 +32,13 @@ module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return collection => {
         return collection.map(contact => {
-            var result = {};
-            fields.forEach(field => {
-                if (field in contact) {
-                    result[field] = contact[field];
+            return fields.reduce(function (current, field) {
+                if (contact.hasOwnProperty(field)) {
+                    current[field] = contact[field];
                 }
-            });
-            return result;
+                return current;
+            },
+            {});
         });
     };
 };
@@ -44,7 +46,7 @@ module.exports.select = function () {
 module.exports.filterIn = function (field, values) {
     return collection => {
         return collection.filter(contact => {
-            return values.some(value => value === contact[field]);
+            return values.indexOf(contact[field]) >= 0;
         });
     };
 };
@@ -56,14 +58,11 @@ module.exports.filterEqual = function (field, value) {
 };
 
 module.exports.sortBy = function (field, order) {
-    if (!(order === 'asc' || order === 'desc')) {
+    if (!sortOrder[order]) {
         throw new TypeError('Порядок сортировки должен быть asc или desc');
     }
     function compareContact(contact1, contact2) {
-        if (contact1[field] > contact2[field]) {
-            return 1;
-        }
-        return -1;
+        return contact1[field] > contact2[field] ? 1 : -1;
     }
     return function (collection) {
         if (order === 'asc') {
