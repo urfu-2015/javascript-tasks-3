@@ -1,5 +1,4 @@
 'use strict';
-
 // Подключаем нашу телефоную книгу друзей
 var phoneBook = require('./phoneBook');
 
@@ -29,10 +28,19 @@ var result = lego.query(
     // На дачу влезет примерно 10 человек
     lego.limit(10)
 );
+var row = '';
+for (var i = 0, l = result.length; i < l; i++) {
+    row = '';
+    console.log('Запись: ' + (i + 1));
+    Object.keys(result[i]).forEach(function (element) {
+        console.log(element + ': ' + result[i][element]);
+    });
+    console.log('');
+}
 
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
 
-var result = lego.query(
+/*var result = lego.query(
     phoneBook,
 
     // Выбираем всех парней, которые любят картофель, и всех девушек, которые любят яблоки
@@ -46,4 +54,4 @@ var result = lego.query(
             lego.filterIn('favoriteFruit', ['Яблоко'])
         )
     )
-);
+);*/
