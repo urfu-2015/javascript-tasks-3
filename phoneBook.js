@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = [
+module.exports.phoneBook = [
   {
       age: 33,
       gender: 'Мужской',
