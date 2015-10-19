@@ -1,27 +1,103 @@
 'use strict';
 
-// Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection /* операторы через запятую */) {
+var sortOrder = { asc: 1, desc: -1 };
 
+// Метод, который будет выполнять операции над коллекцией один за другим
+module.exports.query = function (collection) {
+    var operators = [].slice.call(arguments, 1);
+    return operators.reduce(function (currentCollection, operator) {
+        return operator(currentCollection);
+    },
+    collection.slice());
 };
 
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
-    return function (collection) {
-        var changedCollection = collection.reverse();
-
-        // Возращаем изменённую коллекцию
-        return changedCollection;
+    return collection => {
+        return collection.slice().reverse();
     };
 };
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
-    // Магия
+    return collection => {
+        if (isNaN(n) || n < 0) {
+            throw new RangeError('n должно быть числом и >= 0');
+        }
+        return collection.slice(0, n);
+    };
 };
 
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
+module.exports.select = function () {
+    var fields = [].slice.call(arguments);
+    return collection => {
+        return collection.map(contact => {
+            return fields.reduce(function (current, field) {
+                if (contact.hasOwnProperty(field)) {
+                    current[field] = contact[field];
+                }
+                return current;
+            },
+            {});
+        });
+    };
+};
 
-// Будет круто, если реализуете операторы:
-// or и and
+module.exports.filterIn = function (field, values) {
+    return collection => {
+        return collection.filter(contact => {
+            return values.indexOf(contact[field]) >= 0;
+        });
+    };
+};
+
+module.exports.filterEqual = function (field, value) {
+    return collection => {
+        return collection.filter(contact => value === contact[field]);
+    };
+};
+
+module.exports.sortBy = function (field, order) {
+    if (!sortOrder[order]) {
+        throw new TypeError('Порядок сортировки должен быть asc или desc');
+    }
+    function compareContact(contact1, contact2) {
+        return contact1[field] > contact2[field] ? 1 : -1;
+    }
+    return function (collection) {
+        if (order === 'asc') {
+            return collection.sort(compareContact);
+        }
+        return collection.sort(compareContact).reverse();
+    };
+};
+
+module.exports.format = function (field, formatter) {
+    return collection => {
+        collection.forEach(contact => {
+            contact[field] = formatter(contact[field]);
+        });
+        return collection;
+    };
+};
+
+
+module.exports.and = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        return operators.reduce(function (current, operator) {
+            return operator(current);
+        },
+        collection.slice());
+    };
+};
+
+module.exports.or = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        return operators.reduce(function (current, operator) {
+            return [...current, ...operator(collection)]
+        },
+        []);
+    };
+};
