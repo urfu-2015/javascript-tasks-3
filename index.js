@@ -11,7 +11,10 @@ var result = lego.query(
 
     // Для этого передаём нашу книгу
     phoneBook,
-
+// А пол выведем только первой буквой для удобства
+    lego.format('gender', function (value) {
+        return value[0];
+    }),
     // И выбираем только нужные поля
     lego.select('name', 'gender', 'age', 'phone', 'favoriteFruit'),
 
@@ -19,19 +22,16 @@ var result = lego.query(
     lego.filterIn('favoriteFruit', ['Яблоко', 'Картофель']),
 
     // Отсортируем их по возрасту (но зачем?)
-    lego.sortBy('age', 'asc'), // Бывает только asc (от меньшего к большему) или desc (наоборот)
+    lego.sortBy('age', 'asc'), 
 
-    // А пол выведем только первой буквой для удобства
-    lego.format('gender', function (value) {
-        return value[0];
-    }),
+    
 
     // На дачу влезет примерно 10 человек
     lego.limit(10)
 );
 
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
-
+/*
 var result = lego.query(
     phoneBook,
 
@@ -46,4 +46,4 @@ var result = lego.query(
             lego.filterIn('favoriteFruit', ['Яблоко'])
         )
     )
-);
+);*/
