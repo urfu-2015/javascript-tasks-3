@@ -60,7 +60,7 @@ module.exports.filterEqual = function (field, value) {
     return function (collection) {
         var values = [];
         values.push(value);
-        var filterEq = filterIn(field, values);
+        var filterEq = module.exports.filterIn(field, values);
         return filterEq(collection);
     };
 };
@@ -128,5 +128,62 @@ function compareRecords(field, order) {
     };
 }
 
-// Будет круто, если реализуете операторы:
-// or и and
+module.exports.or = function (query1, query2) {
+    return function (collection) {
+        var collection1 = copyCollection(collection);
+        collection1 = query1(collection1);
+        var collection2 = copyCollection(collection);
+        collection2 = query2(collection2);
+        var changedCollection = collection1;
+        for (var i = 0; i < collection2.length; i++) {
+            if (!recordInCollection(collection2[i], changedCollection)) {
+                changedCollection.push(collection2[i]);
+            }
+        }
+        return changedCollection;
+    };
+}
+
+module.exports.and = function (query1, query2) {
+    return function (collection) {
+        var collection1 = copyCollection(collection);
+        collection1 = query1(collection1);
+        var collection2 = copyCollection(collection);
+        collection2 = query2(collection2);
+        var changedCollection = [];
+        for (var i = 0; i < collection2.length; i++) {
+            if (recordInCollection(collection2[i], collection1)) {
+                changedCollection.push(collection2[i]);
+            }
+        }
+        return changedCollection;
+    };
+}
+
+function recordInCollection(record, collection) {
+    for (var i = 0; i < collection.length; i++) {
+        if (recordsEqual(record, collection[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function recordsEqual(record1, record2) {
+    var keys1 = Object.keys(record1);
+    var keys2 = Object.keys(record2);
+    if (keys1.length !== keys2.length) {
+        return false;
+    }
+    for (var i = 0; i < keys1.length; i++) {
+        if (keys1[i] !== keys2[i]) {
+            return false;
+        }
+    }
+    for (i = 0; i < keys1.length; i++) {
+        if (record1[keys1[i]] !== record2[keys1[i]]) {
+            return false;
+        }
+    }
+    return true;
+}
