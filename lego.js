@@ -80,8 +80,24 @@ module.exports.format = function (field, formatter) {
         return collection;
     };
 };
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
 
-// Будет круто, если реализуете операторы:
-// or и and
+
+module.exports.and = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        return operators.reduce(function (current, operator) {
+            return operator(current);
+        },
+        collection.slice());
+    };
+};
+
+module.exports.or = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        return operators.reduce(function (current, operator) {
+            return [...current, ...operator(collection)]
+        },
+        []);
+    };
+};
