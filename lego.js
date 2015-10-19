@@ -11,22 +11,20 @@ module.exports.query = function (collection) {
 };
 
 function cloneCollection(collection) {
-    var newCollection = [];
-    collection.forEach(function(contact) {
+    return collection.map(function(contact) {
         var fields = Object.keys(contact);
-        var newContact = {};
-        fields.forEach(function(field) {
+        return fields.reduce(function(newContact, field) {
             newContact[field] = contact[field];
-        });
-        newCollection.push(newContact);
+            return newContact;
+        }, {});
     });
-    return newCollection;
 }
+
+
 
 module.exports.reverse = function () {
     return function (collection) {
-        var newCollection = cloneCollection(collection);
-        return newCollection.reverse();
+        return cloneCollection(collection).reverse();
     };
 };
 
@@ -128,18 +126,14 @@ function merge(resCollections, func) {
 }
 
 function and(result, collection) {
-    var mapCollection = collection.map(function (contact) {
-        return JSON.stringify(contact);
-    });
+    var mapCollection = collection.map(JSON.stringify);
     return result.filter(function (contact) {
         return mapCollection.indexOf(JSON.stringify(contact)) > -1;
     });
 }
 
 function or(result, collection) {
-    var mapResult = result.map(function (contact) {
-        return JSON.stringify(contact);
-    });
+    var mapResult = result.map(JSON.stringify);
     return result.concat(collection.filter(function (contact) {
         return mapResult.indexOf(JSON.stringify(contact)) == -1;
     }));
