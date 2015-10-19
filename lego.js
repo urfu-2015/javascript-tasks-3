@@ -6,7 +6,6 @@ module.exports.query = function (collection /* операторы через з�
     for (var i = 1; i < arguments.length; i++) {
         phoneBook = arguments[i](phoneBook);
     };
-    console.log(phoneBook);
     return phoneBook;
 };
 
@@ -35,7 +34,12 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function(phoneBook) {
-        return phoneBook.slice(0, n);
+        var limit = Math.min(phoneBook.length, n);
+        var newPhoneBook = [];
+        for (var i = 0; i < limit; i++) {
+            newPhoneBook.push(phoneBook[i]);
+        };
+        return newPhoneBook;
     };
 };
 
@@ -44,13 +48,15 @@ module.exports.limit = function (n) {
 module.exports.select = function() {
     var values = arguments;
     return function(phoneBook) {
-        var newPhoneBook = phoneBook.map(function(user) {
+        var newPhoneBook = [];
+        phoneBook.forEach(function(user, item, phoneBook) {
+            var newUser = {};
             for (var field in user) {
-                if (!isInList(field, values)) {
-                    delete user[field];
+                if (isInList(field, values)) {
+                    newUser[field] = user[field];
                 };
             };
-            return user;
+            newPhoneBook.push(newUser);
         });
         return newPhoneBook;
     };
@@ -67,21 +73,14 @@ function isInList(obj, list) {
 
 module.exports.filterIn = function(field, values) {
     return function(phoneBook) {
-        var newPhoneBook = phoneBook.map(function(user) {
+        var newPhoneBook = phoneBook.filter(function(user) {
             for (var i = 0; i < values.length; i++) {
                 if (user[field] == values[i]) {
-                    return user;
+                    return true;
                 };
             };
+            return false;
         });
-        var num = 0;
-        while (num < newPhoneBook.length) {
-            if (!newPhoneBook[num]) {
-                newPhoneBook.splice(num, 1);
-            } else {
-                num++;
-            };
-        };
         return newPhoneBook;
     };
 };
@@ -143,7 +142,12 @@ module.exports.or = function() {
         var newPhoneBook = getCopyBook(phoneBook);
         var resultBook = [];
         for (var i = 0; i < args.length; i++) {
-            resultBook = resultBook.concat(args[i](newPhoneBook));
+            var changedPhoneBook = args[i](newPhoneBook);
+            changedPhoneBook.forEach(function(user, item, changedPhoneBook) {
+                if (!isInList(user, resultBook)) {
+                    resultBook.push(user);
+                };
+            });
         };
         return resultBook;
     };
