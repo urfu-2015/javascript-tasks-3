@@ -98,10 +98,10 @@ module.exports.sortBy = function(property, type) {
 /*
  Оператор format, который формирует -_-
  */
-module.exports.format = function(property, f) {
+module.exports.format = function(property, format) {
     return function (collection) {
         collection.forEach(function (element) {
-            element[property] = f(element[property]);
+            element[property] = format(element[property]);
         });
         return collection;
     }
