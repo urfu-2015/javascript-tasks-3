@@ -5,34 +5,34 @@
  * @param {Array of Dicts} changedCollection
 */
 module.exports.query = function (collection /* операторы через запятую */) {
-	var changedCollection = collection;
-	for (var op in arguments) {
-		if (op != '0') {
-			changedCollection = arguments[op](changedCollection);
-		}
-	}
-	// Возращаем изменённую коллекцию
-	return changedCollection;
+    var changedCollection = collection;
+    for (var op in arguments) {
+        if (op != '0') {
+            changedCollection = arguments[op](changedCollection);
+        }
+    }
+    // Возращаем изменённую коллекцию
+    return changedCollection;
 };
 
 /** Оператор select, который оставляет только нужные поля в записях
  * @return {function}
  */
-module.exports.select = function(){
-	var fieldsToChoose = [].slice.apply(arguments);
-	return function (collection) {
+module.exports.select = function () {
+    var fieldsToChoose = [].slice.apply(arguments);
+    return function (collection) {
         var changedCollection = [];
         var counter = 0;
         for (var i = 0; i < collection.length; i++) {
-        	var temp_dict = {};
-        	for (var key in collection[i]) {
+            var temp_dict = {};
+            for (var key in collection[i]) {
                 if (fieldsToChoose.indexOf(key) != -1) {
-                	counter += 1;
+                    counter += 1;
                     temp_dict[key] = collection[i][key];
                 }
             }
             if (counter == fieldsToChoose.length) {
-            	changedCollection.push(temp_dict);
+                changedCollection.push(temp_dict);
             }
             counter = 0;
         }
@@ -44,18 +44,18 @@ module.exports.select = function(){
 /** Оператор filterIn, который сортирует по какому-то ключу и значениям
  * @return {function}
  */
-module.exports.filterIn = function(){
-	var keyForFilter = arguments[0];
-	var exceptedValues = arguments[1];
-	return function (collection) {
+module.exports.filterIn = function () {
+    var keyForFilter = arguments[0];
+    var exceptedValues = arguments[1];
+    return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-        	for (var j = 0; j < exceptedValues.length; j++) {
-        		if (collection[i][keyForFilter].indexOf(exceptedValues[j]) != -1) {
-            		changedCollection.push(collection[i]);
-            		break;
-        		}
-        	}
+            for (var j = 0; j < exceptedValues.length; j++) {
+                if (collection[i][keyForFilter].indexOf(exceptedValues[j]) != -1) {
+                    changedCollection.push(collection[i]);
+                    break;
+                }
+            }
         }
         // Возращаем изменённую коллекцию
         return changedCollection;
@@ -66,15 +66,15 @@ module.exports.filterIn = function(){
 /** Оператор filterEqual, который сортирует по какому-то ключу и значению
  * @return {function}
  */
-module.exports.filterEqual = function(){
-	var keyForFilter = arguments[0];
-	var exceptedValue = arguments[1];
-	return function (collection) {
+module.exports.filterEqual = function () {
+    var keyForFilter = arguments[0];
+    var exceptedValue = arguments[1];
+    return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-    		if (collection[i][keyForFilter] === exceptedValue) {
-        		changedCollection.push(collection[i]);
-    		}
+            if (collection[i][keyForFilter] === exceptedValue) {
+                changedCollection.push(collection[i]);
+            }
         }
         // Возращаем изменённую коллекцию
         return changedCollection;
@@ -84,10 +84,10 @@ module.exports.filterEqual = function(){
 /** Оператор sortBy, который сортирует по какому-то ключу и значению
  * @return {function}
  */
-module.exports.sortBy = function(){
-	var keyForSort = arguments[0];
-	var typeOfSort = arguments[1];
-	return function (collection) {
+module.exports.sortBy = function () {
+    var keyForSort = arguments[0];
+    var typeOfSort = arguments[1];
+    return function (collection) {
         function comparePeople(a, b) {
             if (parseInt(a[keyForSort]) > parseInt(b[keyForSort])) {
                 return 1;
@@ -120,14 +120,14 @@ module.exports.reverse = function () {
 /** Оператор format, который меняет формат какого-то значения
  * @return {function}
  */
-module.exports.format = function(){
-	var keyForFormat = arguments[0];
-	var newFormatFunc = arguments[1];
-	return function (collection) {
+module.exports.format = function () {
+    var keyForFormat = arguments[0];
+    var newFormatFunc = arguments[1];
+    return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-        	collection[i][keyForFormat] = newFormatFunc(collection[i][keyForFormat])
-        	changedCollection.push(collection[i]);
+            collection[i][keyForFormat] = newFormatFunc(collection[i][keyForFormat]);
+            changedCollection.push(collection[i]);
         }
         // Возращаем изменённую коллекцию
         return changedCollection;
@@ -145,12 +145,42 @@ module.exports.limit = function (n) {
         for (var i = 0; i < n; i++) {
             changedCollection.push(collection[i]);
         }
-        console.log(changedCollection)
         // Возращаем изменённую коллекцию
         return changedCollection;
     };
 };
 
-// P.S. Доделаю в скором времени
-// Будет круто, если реализуете операторы:
-// or и and
+/**
+ * Оператор or, который отбирает участников по нескольким фильтрам
+ * @return {function}
+ */
+module.exports.or = function () {
+    var args = [].slice.apply(arguments);
+    return function (collection) {
+        var result = [];
+        for (var i = 0; i < args.length; i++) {
+            var changedCollection = args[i](collection);
+            for (var j = 0; j < changedCollection.length; j++) {
+                result.push(changedCollection[j]);
+            }
+        }
+        // Возращаем изменённую коллекцию
+        return changedCollection;
+    };
+};
+
+/**
+ * Оператор and, который объединяет в себе некоторые операторы
+ * @return {function}
+ */
+module.exports.and = function () {
+    var operators = [].slice.apply(arguments);
+    return function (collection) {
+        var changedCollection = collection;
+        for (var i = 0; i < operators.length; i++) {
+            changedCollection = operators[i](changedCollection);
+        }
+        // Возращаем изменённую коллекцию
+        return changedCollection;
+    };
+};
