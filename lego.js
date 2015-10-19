@@ -11,12 +11,12 @@ function isPhoneBookField(field) {
 };
 
 // Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection, fields, filter, sorter, format, limit) {
+module.exports.query = function (collection, fields, filter, sorter, formater, limit) {
     var qyeryRes = [];
     var record = {};
 
     for (var i = 0, l = collection.length; i < l; i++) {
-        record = {};//???без обнуления одинаковые записи в результате
+        record = Object.assign({}, {});//???без обнуления одинаковые записи в результате
 
         // Фильтруем записи
         if (filter && filter.values.indexOf(collection[i][filter.field]) === -1) {
@@ -33,7 +33,7 @@ module.exports.query = function (collection, fields, filter, sorter, format, lim
 
     //console.log(sorter.type);
     //Сортировка по выбранному полю
-    var buferRecord = {};
+    var buferRecord;
     if (sorter) {
         for (var i = 0, l = qyeryRes.length; i < l; i++) {
             for (var j = i + 1, l = qyeryRes.length; j < l; j++) {
@@ -41,12 +41,18 @@ module.exports.query = function (collection, fields, filter, sorter, format, lim
                     buferRecord = Object.assign({}, qyeryRes[i]);
                     qyeryRes[i] = Object.assign({}, qyeryRes[j]);
                     qyeryRes[j] = Object.assign({}, buferRecord);
-                    buferRecord = {};
+                    buferRecord = Object.assign({}, {});
                 }
             }
         }
         if (sorter.type === sortTypes.desc) {
             qyeryRes.reverse();
+        }
+    }
+    
+    if (formater) {
+        for (var i = 0, l = qyeryRes.length; i < l; i++) {
+            qyeryRes[i][formater.field] = formater.func(qyeryRes[i][formater.field]);
         }
     }
 
@@ -94,7 +100,14 @@ module.exports.sortBy = function (field, type) {
     return sorter;
 };
 
-module.exports.format = function () {
+module.exports.format = function (field, func) {
+    isPhoneBookField(field);
+    
+    var formater = {
+        field: field,
+        func: func
+    };
+    return formater;
 };
 
 module.exports.filterEqual = function () {
