@@ -31,7 +31,7 @@ module.exports.limit = function (n) {
     return limitCollection;
 };
 
-module.exports.select = function() {
+module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
         var selectedCollection = [];
@@ -48,7 +48,7 @@ module.exports.select = function() {
     };
 };
 
-module.exports.filterIn = function(field, values) {
+module.exports.filterIn = function (field, values) {
     return function (collection) {
         var filteredCollection = [];
         collection.forEach(function (item, i, collection) {
@@ -60,7 +60,7 @@ module.exports.filterIn = function(field, values) {
     };
 };
 
-module.exports.filterEqual = function(field, value) {
+module.exports.filterEqual = function (field, value) {
     return function (collection) {
         var filteredCollection = [];
         collection.forEach(function (item, i, collection) {
@@ -72,7 +72,7 @@ module.exports.filterEqual = function(field, value) {
     };
 };
 
-module.exports.sortBy = function(property, order) {
+module.exports.sortBy = function (property, order) {
     return function (collection) {
         var sortedCollection = collection.sort(function (first, second) {
             if (first[property] < second[property]) {
@@ -90,12 +90,12 @@ module.exports.sortBy = function(property, order) {
     };
 };
 
-module.exports.format = function(property, convertFunction) {
+module.exports.format = function (property, convertFunction) {
     return function (collection) {
         var formatedCollection = [];
         collection.forEach(function (item, i, collection) {
             var newData = {};
-            for(var prop in item) {
+            for (var prop in item) {
                 if (property === prop) {
                     newData[prop] = convertFunction(item[prop]);
                 } else {
@@ -104,7 +104,6 @@ module.exports.format = function(property, convertFunction) {
             }
             formatedCollection.push(newData);
         });
-        console.log(formatedCollection);
         return formatedCollection;
     };
 };
