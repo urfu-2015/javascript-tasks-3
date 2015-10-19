@@ -33,9 +33,9 @@ module.exports.select = function (){
     var fields = arguments;
     return function (collection) {
         var newCollection = [];
-        for (var contact in collection){
+        for (var contact = 0; contact < collection.length; contact++){
             var newField = {};
-            for (var field in fields){
+            for (var field = 0; field < fields.length; field++){
                 newField[fields[field]] = collection[contact][fields[field]];            			
             }
             newCollection.push(newField);		
@@ -47,8 +47,8 @@ module.exports.select = function (){
 module.exports.filterIn = function (field, criteria){
     return function (collection) {
         var newCollection = [];
-        for (var contact in collection){
-            for (var criterion in criteria){
+        for (var contact = 0; contact < collection.length; contact++){
+            for (var criterion = 0; criterion < criteria.length; criterion++){
                 if (collection[contact][field]==criteria[criterion]){
                     newCollection.push(collection[contact]);
                 }
@@ -65,7 +65,7 @@ module.exports.filterEqual = function (field, criterion){
 };
 
 function sort(collection, field){
-    for (var contact1 in collection){
+    for (var contact1 = 0; contact1 < collection.length; contact1++){
         for (var contact2 = 0; contact2 < collection.length-1; contact2++){
             if (collection[contact2][field] > collection[Number(contact2)+1][field]){
                 var newField = {};
@@ -93,7 +93,7 @@ module.exports.sortBy = function (field, criterion){
 
 module.exports.format = function (field, func){
     return function (collection) {
-        for (var contact in collection){
+        for (var contact = 0; contact < collection.length; contact++){
             collection[contact][field] = func(collection[contact][field]);
         }
         return collection;
