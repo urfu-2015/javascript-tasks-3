@@ -105,8 +105,36 @@ module.exports.format = function (field, formatFunc) {
     };
 };
 
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
+module.exports.or = function () {
+    var filters = [].slice.call(arguments);
+    return function (collection) {
+        var resultCollection = [];
+        filters.forEach(function (filter) {
+            var collectionByThisFilter = filter(collection);
+            collectionByThisFilter.forEach(function (element) {
+                if (resultCollection.indexOf(element) === -1) {
+                    resultCollection.push(element);
+                }
+            });
+        });
+        return resultCollection;
+    };
+};
 
-// Будет круто, если реализуете операторы:
-// or и and
+module.exports.and = function () {
+    var filters = [].slice.call(arguments);
+    return function (collection) {
+        var resultCollection = collection.slice();
+        filters.forEach(function (filter) {
+            var collectionByThisFilter = filter(collection);
+            for (var i = 0; i < resultCollection.length; i++) {
+                var elementIndex = collectionByThisFilter.indexOf(resultCollection[i]);
+                if (elementIndex == -1) {
+                    resultCollection.splice(i, 1);
+                    i--;
+                }
+            }
+        });
+        return resultCollection;
+    };
+};
