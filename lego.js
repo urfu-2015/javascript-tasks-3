@@ -20,6 +20,7 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
+        n = n > 0 ? n : 0;
         return collection.slice(0, n);
     };
 };
@@ -31,7 +32,9 @@ module.exports.select = function () {
         return collection.map(function (person) {
             var updatedPerson = {};
             requiredFields.forEach(function (field) {
-                updatedPerson[field] = person[field];
+                if (field in person) {
+                    updatedPerson[field] = person[field];
+                }
             });
             return updatedPerson;
         });
@@ -42,14 +45,11 @@ module.exports.select = function () {
    у которых одно из указанных значений в поле field
 */
 module.exports.filterIn = function (field, correctValues) {
-    var valuesLength = correctValues.length;
     return function (collection) {
         return collection.filter(function (person) {
-            for (var i = 0; i < valuesLength; i++) {
-                if (person[field] == correctValues[i]) {
-                    return true;
-                }
-            }
+            return correctValues.some(function (value) {
+                return person[field] === value;
+            });
         });
     };
 };
@@ -58,7 +58,12 @@ module.exports.filterIn = function (field, correctValues) {
 module.exports.sortBy = function (field, direction) {
     return function (collection) {
         collection = collection.sort(function (a, b) {
-            return a[field] - b[field];
+            if (a[field] < b[field]) {
+                return -1;
+            } else if (a[field] > b[field]) {
+                return 1;
+            }
+            return 0;
         });
         return direction === 'asc' ? collection : collection.reverse();
     };
@@ -67,11 +72,10 @@ module.exports.sortBy = function (field, direction) {
 // Оператор format, который изменяет значения field согласно переданному формату
 module.exports.format = function (field, requiredFormat) {
     return function (collection) {
-        var updatedCollection = collection.map(function (person) {
+        return collection.map(function (person) {
             person[field] = requiredFormat(person[field]);
             return person;
         });
-        return updatedCollection;
     };
 };
 
@@ -81,7 +85,7 @@ module.exports.format = function (field, requiredFormat) {
 module.exports.filterEqual = function (field, correctValue) {
     return function (collection) {
         return collection.filter(function (person) {
-            return person[field] == correctValue;
+            return person[field] === correctValue;
         });
     };
 };
@@ -101,7 +105,7 @@ module.exports.or = function () {
     return function (collection) {
         var updatedCollections = [];
         queries.forEach(function (query) {
-            updatedCollections.push(query(collection));
+            updatedCollections = updatedCollections.concat(query(collection));
         });
         return updatedCollections;
     };
