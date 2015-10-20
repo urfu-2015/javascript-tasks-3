@@ -11,51 +11,61 @@ module.exports.query = function (collection) {
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
-        return collection.reverse();
+        var changedCollection = collection.reverse();
+        // Возращаем изменённую коллекцию
+        return changedCollection;
     };
 };
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        return collection.slice(0, n);
+        return n <= 0 ? [] : collection.slice(0, n);
     };
 };
 
 module.exports.select = function () {
     var fields = [].slice.call(arguments);
+    if (fields.length <= 0) {
+        return [];
+    }
     return function (collection) {
-        return collection.map(function (object) {
-            for (var field in object) {
-                if (fields.indexOf(field) === -1) {
-                    delete object[field];
+        var newCollection = [];
+        collection.forEach(function (item) {
+            var newItem = {};
+            fields.forEach(function (field) {
+                if (typeof item[field] != 'undefined') {
+                    newItem[field] = item[field];
                 }
-            }
-            return object;
+            });
+            newCollection.push(newItem);
+        });
+        return newCollection;
+    };
+};
+
+module.exports.filterIn = function (field, conditions) {
+    return function (collection) {
+        var changedCollection = collection;
+        return changedCollection.filter(function (item) {
+            return conditions.indexOf(item[field]) !== -1;
         });
     };
 };
 
-module.exports.filterIn = function (field, filter) {
+module.exports.filterEqual = function (field, condition) {
     return function (collection) {
-        return collection.filter(function (object) {
-            return filter.indexOf(object[field]) !== -1;
-        });
-    };
-};
-
-module.exports.filterEqual = function (field, filter) {
-    return function (collection) {
-        return collection.filter(function (object) {
-            return object[field] == filter;
+        var changedCollection = collection;
+        return changedCollection.filter(function (item) {
+            return item[field] === condition;
         });
     };
 };
 
 module.exports.sortBy = function (field, mode) {
-    mode = mode.toLowerCase();
     return function (collection) {
-        return collection.sort(function (object1, object2) {
+        var changedCollection = collection;
+        return changedCollection.sort(function (object1, object2) {
             if (mode == 'asc') {
                 return object1[field] <= object2[field] ? 1 : -1;
             } else {
@@ -65,22 +75,41 @@ module.exports.sortBy = function (field, mode) {
     };
 };
 
-module.exports.format = function (field, callback) {
+module.exports.format = function (field, func) {
     return function (collection) {
-        return collection.map(function (item) {
-            item[field] = callback(item[field]);
-            return item;
+        var changedCollection = collection;
+        changedCollection.forEach(function (item) {
+            item[field] = func(item[field]);
         });
+        return changedCollection;
+    };
+};
+
+module.exports.or = function () {
+    var args = [].slice.call(arguments);
+    return function (collection) {
+        var newCollection = [];
+        args.forEach(function (func) {
+            var tempCollection = func(collection);
+            tempCollection.forEach(function (item) {
+                if (newCollection.indexOf(item) === -1) {
+                    newCollection.push(item);
+                }
+            });
+        });
+        return newCollection;
+    };
+};
+
+module.exports.and = function () {
+    var args = [].slice.call(arguments);
+    return function (collection) {
+        args.forEach(function (func) {
+            collection = func(collection);
+        });
+        return collection;
     };
 };
 
 // Будет круто, если реализуете операторы:
 // or и and
-
-module.exports.or = function () {
-
-};
-
-module.exports.and = function () {
-
-};
