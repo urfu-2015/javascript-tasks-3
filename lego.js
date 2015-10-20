@@ -18,8 +18,8 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (limit) {
     return function (collection) {
+        var arrCollection = [];
         for (var i = 0; i <= limit; i++) {
-            var arrCollection = [];
             arrCollection.push(collection[i]);
         }
         return arrCollection;
@@ -30,12 +30,12 @@ module.exports.limit = function (limit) {
 module.exports.select = function () {
     var args = [].slice.call(arguments);
     return function (collection) {
+        var person = {};
+        var result = [];
         for (var i in collection) {
             for (var j in args) {
-                var person = {};
                 person[args[j]] = collection[i][args[j]];
             }
-            var result = [];
             result.push(person);
         }
         return result;
@@ -45,10 +45,10 @@ module.exports.select = function () {
 // Оператор filterIn, которым выбираем тех, кто любит Яблоки и Картофель
 module.exports.filterIn = function (filter, queries) {
     return function (collection) {
+        var person = collection[i];
+        var result = [];
         for (var i = 0; i < collection.length; i++) {
-            var person = collection[i];
             if (queries.indexOf(person[filter]) !== -1) {
-                var result = [];
                 result.push(person);
             }
         }
@@ -59,10 +59,10 @@ module.exports.filterIn = function (filter, queries) {
 
 module.exports.filterEqual = function (filter, queries) {
     return function (collection) {
+        var result = [];
+        var person = collection[i];
         for (var i = 0; i < collection.length; i++) {
-            var person = collection[i];
             if (person[filter] === queries) {
-                var result = [];
                 result.push(person);
             }
         }
