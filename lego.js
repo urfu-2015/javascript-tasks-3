@@ -18,6 +18,18 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     // Магия
+    var isIndexValid = true;
+    if (n < 0) {
+        console.error('Неверный индекс!');
+        isIndexValid = false;
+    }
+    return function (collection) {
+        if (isValidIndex) {
+            return collection.slice(0, n);
+        } else {
+            return collection;
+        }
+    };
 };
 
 // Вам необходимо реализовать остальные операторы:
