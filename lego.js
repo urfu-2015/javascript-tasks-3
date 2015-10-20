@@ -105,7 +105,12 @@ module.exports.or = function () {
     return function (collection) {
         var updatedCollections = [];
         queries.forEach(function (query) {
-            updatedCollections = updatedCollections.concat(query(collection));
+            var currentCollection = query(collection);
+            currentCollection.forEach(function (person) {
+                if (updatedCollections.indexOf(person) === -1) {
+                    updatedCollections.push(person);
+                }
+            });
         });
         return updatedCollections;
     };
