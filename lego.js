@@ -55,9 +55,7 @@ module.exports.filterIn = function (field, filter) {
 
 // Оператор filterEqual
 module.exports.filterEqual = function (field, filter) {
-    return function (collection) {
-        return this.filterIn(field, filter)(collection);
-    }.bind(this);
+    return this.filterIn(field, filter)
 };
 
 
@@ -91,9 +89,9 @@ module.exports.or = function () {
     return function (collection) {
         var collectionOr = collection;
         if (functions.length) {
-            collectionOr = functions[0](collection);
-            for (var i = 1; i < functions.length; i++) {
-                var collect = functions[i](collection);
+            collectionOr = [];
+            functions.forEach(function (item) {
+                var collect = item(collection);
                 var collections_string = collectionOr.map(JSON.stringify);
                 collectionOr = collectionOr.concat(
                     collect.filter(
@@ -103,7 +101,7 @@ module.exports.or = function () {
                         }
                     )
                 );
-            };
+            });
         }
         return collectionOr;
     };
