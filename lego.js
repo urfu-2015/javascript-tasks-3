@@ -21,14 +21,12 @@ module.exports.reverse = function () {
     };
 };
 
-// Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
-	if (n >= 0) {
+	n = n < 0 ? 0 : n;
+
     return function (collection){
     	return collection.slice(0, n);
-    };} else 
-
-    	return false;
+    };
 };
 
 module.exports.select = function (){
@@ -76,15 +74,14 @@ module.exports.filterEqual = function (key, value) {
 
 module.exports.sortBy = function (key, method) {
 	return function (collection) {
-		var newPhoneBook = collection.sort(function (elementFirst, elementSecond) {
-			if (method === 'asc'){
-			return elementFirst[key] < elementSecond[key] ? -1 : 1;
-		} else {
-			return elementFirst[key] < elementSecond[key] ? 1 : -1;
-		}
-		});
-		
-		return newPhoneBook;
+		var cheat = method === 'asc' ? -1 : 1
+
+		return collection.sort(function (elementFirst, elementSecond) {
+			if (elementFirst[key] < elementSecond[key]) {
+				return cheat;
+			} else {
+				return -cheat;
+		}});
 	};
 };
 
