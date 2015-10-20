@@ -7,6 +7,7 @@ module.exports.query = function (collection /* операторы через з�
 	for (var i = 1; i < arguments.length; i++) {
 		phoneBook = arguments[i](phoneBook);
 	}
+	console.log(phoneBook);
 	return phoneBook;
 };
 
@@ -22,9 +23,12 @@ module.exports.reverse = function () {
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
+	if (n >= 0) {
     return function (collection){
     	return collection.slice(0, n);
-    };
+    };} else 
+
+    	return false;
 };
 
 module.exports.select = function (){
@@ -43,6 +47,7 @@ module.exports.select = function (){
 					newRecord[key] = record[key];
 				}
 			});
+
 			newPhoneBook.push(newRecord);
 		}
 
@@ -72,27 +77,24 @@ module.exports.filterEqual = function (key, value) {
 module.exports.sortBy = function (key, method) {
 	return function (collection) {
 		var newPhoneBook = collection.sort(function (elementFirst, elementSecond) {
-			if (elementFirst[key] < elementSecond[key]) {
-				return -1;
-			}
-			if (elementFirst[key] > elementSecond[key]) {
-				return 1;
-			} 
-		});
-		if (method === 'desc') {
-			return newPhoneBook.reverse();
+			if (method === 'asc'){
+			return elementFirst[key] < elementSecond[key] ? -1 : 1;
+		} else {
+			return elementFirst[key] < elementSecond[key] ? 1 : -1;
 		}
+		});
+		
 		return newPhoneBook;
 	};
 };
 
 module.exports.format = function(field, func) {
     return function (collection) {
-        var newPhoneBook = collection.map(function(user) {
+        return collection.map(function(user) {
             user[field] = func(user[field]);
+
             return user;
         });
-        return newPhoneBook;
     };
 };
 
