@@ -9,7 +9,7 @@ module.exports.query = function (collection) {
 };
 module.exports.reverse = function () {
     return function (collection) {
-        var changedCollection = collection.reverse();
+        var changedCollection = collection.slice().reverse();
         return changedCollection;
     };
 };
