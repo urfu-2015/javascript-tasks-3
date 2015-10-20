@@ -30,6 +30,9 @@ module.exports.limit = function (n) {
         if (n > collection.length) {
             return collection;
         }
+        if (n <= 0) {
+            return '';
+        }
         var resultCollection = [];
         for (var i = 0; i < n; i++) {
             resultCollection.push(collection[i]);
@@ -41,7 +44,6 @@ module.exports.limit = function (n) {
 
 module.exports.select = function () {
     var selectArgs = [].slice.call(arguments);
-
     return function (collection) {
         if (selectArgs.length === 0) {
             return collection;
@@ -62,7 +64,7 @@ module.exports.select = function () {
 
 module.exports.filterIn = function (param, values) {
     if (arguments.length === 0 || arguments.length === 1) {
-        return "";
+        return '';
     }
     return function (collection) {
         var resultCollection = [];
@@ -79,7 +81,7 @@ module.exports.filterIn = function (param, values) {
 
 module.exports.filterEqual = function (param, value) {
     if (arguments.length === 0 || arguments.length === 1) {
-        return "";
+        return '';
     }
     return module.exports.filterIn(param, [value]);
 };
@@ -97,14 +99,10 @@ function findMin(collection, param) {
 }
 
 module.exports.sortBy = function (param, order) {
-    if (order !== 'asc' && order !== 'desc') {
-        return "";
+    if (order !== 'asc' && order !== 'desc' || arguments.length === 0 || arguments.length === 1) {
+        return '';
     }
-    var args = [].slice.call(arguments);
     return function (collection) {
-        if (args.length === 0 || args.length === 1) {
-            return collection;
-        }
         var resultCollection = [];
         var minElementIndex = 0;
         var minElement = collection[0];
@@ -124,11 +122,11 @@ module.exports.sortBy = function (param, order) {
 };
 
 module.exports.format = function (arg, func) {
-    var args = [].slice.call(arguments);
+    if (arguments.length === 0) {
+        return '';
+    }
     return function (collection) {
-        if (args.length === 0) {
-            return collection;
-        }
+
         for (var i in collection) {
             collection[i][arg] = func(collection[i][arg]);
         }
