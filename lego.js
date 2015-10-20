@@ -9,7 +9,7 @@ module.exports.query = function (collection) {
     for (var i = 1; i < arguments.length; ++i) {
         collection = arguments[i](collection);
     }
-    console.log(collection);
+    return collection;
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -35,14 +35,11 @@ module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
         return collection.map(function (contact) {
-            var newContact = {};
             var keys = Object.keys(contact);
-            keys.forEach(function (key) {
-                if (fields.indexOf(key) > -1) {
-                    newContact[key] = contact[key];
-                }
-            });
-            return newContact;
+            return keys.reduce(function (newContact, key) {
+                newContact[key] = contact[key];
+                return newContact;
+            }, {});
         });
     };
 };
@@ -59,10 +56,8 @@ module.exports.filterIn = function (field, filter) {
 // Оператор filterEqual
 module.exports.filterEqual = function (field, filter) {
     return function (collection) {
-        return collection.filter(function (contact) {
-            return filter === contact[field];
-        });
-    };
+        return this.filterIn(field, filter)(collection);
+    }.bind(this);
 };
 
 
@@ -75,7 +70,7 @@ module.exports.sortBy = function (field, ord_type) {
             } else if (ord_type === 'desc') {
                 return contact1[field] >= contact2[field] ? -1 : 1;
             }
-            return -1;
+            return 0;
         });
     };
 };
@@ -93,8 +88,8 @@ module.exports.format = function (field, view) {
 // Оператор or
 module.exports.or = function () {
     var functions = [].slice.call(arguments);
-    var collectionOr;
     return function (collection) {
+        var collectionOr = collection;
         if (functions.length) {
             collectionOr = functions[0](collection);
             for (var i = 1; i < functions.length; i++) {
@@ -109,8 +104,6 @@ module.exports.or = function () {
                     )
                 );
             };
-        } else {
-            collectionOr = collection;
         }
         return collectionOr;
     };
@@ -119,8 +112,8 @@ module.exports.or = function () {
 
 module.exports.and = function () {
     var functions = [].slice.call(arguments);
-    var collectionAnd;
     return function (collection) {
+        var collectionAnd = collection;
         if (functions.length) {
             collectionAnd = functions[0](collection);
             for (var i = 1; i < functions.length; i++) {
@@ -132,8 +125,6 @@ module.exports.and = function () {
                     }
                 );
             };
-        } else {
-            collectionAnd = collection;
         }
         return collectionAnd;
     };
