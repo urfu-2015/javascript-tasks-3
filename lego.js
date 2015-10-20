@@ -28,8 +28,7 @@ module.exports.reverse = function () {
 module.exports.limit = function (n) {
     return function (collection) {
         if (n > collection.length) {
-            console.error('Лимит не должен превышать размер телефонной книги!');
-            return;
+            return collection;
         }
         var resultCollection = [];
         for (var i = 0; i < n; i++) {
@@ -41,18 +40,19 @@ module.exports.limit = function (n) {
 };
 
 module.exports.select = function () {
-    var args = [].slice.call(arguments);
-    if (args.length === 0) {
-        console.error('Не заданы параметры выборки!');
-        return;
-    }
+    var selectArgs = [].slice.call(arguments);
+
     return function (collection) {
-        var selectArgs = args;
+        if (selectArgs.length === 0) {
+            return collection;
+        }
         var resultCollection = [];
         for (var i in collection) {
             var newElement = {};
             for (var j in selectArgs) {
-                newElement[selectArgs[j]] = collection[i][selectArgs[j]];
+                if (typeof collection[i][selectArgs[j]] !== 'undefined') {
+                    newElement[selectArgs[j]] = collection[i][selectArgs[j]];
+                }
             }
             resultCollection.push(newElement);
         }
@@ -62,8 +62,7 @@ module.exports.select = function () {
 
 module.exports.filterIn = function (param, values) {
     if (arguments.length === 0 || arguments.length === 1) {
-        console.error('Недостаточно параметров для фильтра!');
-        return;
+        return "";
     }
     return function (collection) {
         var resultCollection = [];
@@ -80,8 +79,7 @@ module.exports.filterIn = function (param, values) {
 
 module.exports.filterEqual = function (param, value) {
     if (arguments.length === 0 || arguments.length === 1) {
-        console.error('Недостаточно параметров для фильтра!');
-        return;
+        return "";
     }
     return module.exports.filterIn(param, [value]);
 };
@@ -99,15 +97,14 @@ function findMin(collection, param) {
 }
 
 module.exports.sortBy = function (param, order) {
-    if (arguments.length === 0 || arguments.length === 1) {
-        console.error('Недостаточно параметров для сортировки!');
-        return;
-    }
     if (order !== 'asc' && order !== 'desc') {
-        console.error('Несуществующий порядок сортировки!');
-        return;
+        return "";
     }
+    var args = [].slice.call(arguments);
     return function (collection) {
+        if (args.length === 0 || args.length === 1) {
+            return collection;
+        }
         var resultCollection = [];
         var minElementIndex = 0;
         var minElement = collection[0];
@@ -127,11 +124,11 @@ module.exports.sortBy = function (param, order) {
 };
 
 module.exports.format = function (arg, func) {
-    if (arguments.length === 0) {
-        console.error('Нет параметров для форматирования!');
-        return;
-    }
+    var args = [].slice.call(arguments);
     return function (collection) {
+        if (args.length === 0) {
+            return collection;
+        }
         for (var i in collection) {
             collection[i][arg] = func(collection[i][arg]);
         }
@@ -153,12 +150,11 @@ function areEqual(firstObj, secondObj) {
 }
 
 module.exports.and = function () {
-    if (arguments.length === 0) {
-        console.error('Нет данных для пересечения!');
-        return;
-    }
     var operators = [].slice.call(arguments);
     return function (collection) {
+        if (operators.length === 0) {
+            return "";
+        }
         var tempCollection1 = operators[0](collection);
         var arrOfIntersected = new Array(tempCollection1.length);
         for (var i = 1; i < operators.length; i++) {
@@ -183,12 +179,11 @@ module.exports.and = function () {
 };
 
 module.exports.or = function () {
-    if (arguments.length === 0) {
-        console.error('Нет данных для объединения!');
-        return;
-    }
     var operators = [].slice.call(arguments);
     return function (collection) {
+        if (operators.length === 0) {
+            return "";
+        }
         var resultCollection = operators[0](collection);
         for (var i = 1; i < operators.length; i++) {
             var tempCollection = operators[i](collection);
