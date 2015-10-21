@@ -64,7 +64,7 @@ module.exports.filterEqual = function(selector, value) {
 module.exports.sortBy = function (field, order) {
     var isValidArguments = true;
     if (order !== 'asc' && order !== 'desc') {
-        console.error('Неправильный аргумент');
+        console.error('Неправильный аргумент.');
         isValidArguments = false;
     }
     return function (collection) {
