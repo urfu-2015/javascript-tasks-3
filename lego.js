@@ -6,93 +6,75 @@ module.exports.query = function (phoneBook) {
     for (var functions = 1; functions < arguments.length; functions++) {
         phoneBook = arguments[functions](phoneBook);
     }
-    console.log(phoneBook);
+    return (phoneBook);
 };
 
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (phoneBook) {
-        var changedphoneBook = phoneBook.reverse();
-        return changedphoneBook;
+        return phoneBook.reverse();
     };
 };
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (phoneBook) {
-        var newphoneBook = [];
-        for (var i = 0; i < n; i++) {
-            newphoneBook.push(phoneBook[i]);
-        }
-        return newphoneBook;
+        var newPhoneBook = phoneBook.slice(0, Math.min(n, phoneBook.length));
+        return newPhoneBook;
     };
 };
 
 module.exports.select = function () {
-    var fields = arguments;
+    var records = [].slice.call(arguments);
     return function (phoneBook) {
-        var newphoneBook = [];
+        var newPhoneBook = [];
         for (var contact = 0; contact < phoneBook.length; contact++) {
-            var newField = {};
-            for (var field = 0; field < fields.length; field++) {
-                newField[fields[field]] = phoneBook[contact][fields[field]];
-            }
-            newphoneBook.push(newField);
+            var record = phoneBook[contact];
+            var newRecord = {};
+            var keys = Object.keys(record);
+            keys.forEach(function (key) {
+                if (records.indexOf(key) !== -1) {
+                    newRecord[key] = record[key];
+                }
+            });
+            newPhoneBook.push(newRecord);
         }
-        return newphoneBook;
+        return newPhoneBook;
     };
 };
 
-module.exports.filterIn = function (field, criteria) {
+module.exports.filterIn = function (record, criteria) {
     return function (phoneBook) {
-        var newphoneBook = [];
+        var newPhoneBook = [];
         for (var contact = 0; contact < phoneBook.length; contact++) {
             for (var criterion = 0; criterion < criteria.length; criterion++) {
-                if (phoneBook[contact][field] == criteria[criterion]) {
-                    newphoneBook.push(phoneBook[contact]);
+                if (phoneBook[contact][record] === criteria[criterion]) {
+                    newPhoneBook.push(phoneBook[contact]);
                 }
             }
         }
-        return newphoneBook;
+        return newPhoneBook;
     };
 };
 
-module.exports.filterEqual = function (field, criterion) {
+module.exports.sortBy = function (record, criterion) {
     return function (phoneBook) {
-        return module.exports.filterEqual(field, criterion);
-    };
-};
-
-function sort(phoneBook, field) {
-    for (var contact1 = 0; contact1 < phoneBook.length; contact1++) {
-        for (var contact2 = 0; contact2 < phoneBook.length - 1; contact2++) {
-            if (phoneBook[contact2][field] > phoneBook[Number(contact2) + 1][field]) {
-                var newField = {};
-                newField = phoneBook[Number(contact2) + 1][field];
-                phoneBook[Number(contact2) + 1][field] = phoneBook[contact2][field];
-                phoneBook[contact2][field] = newField;
-            }
-        }
-    }
-    return phoneBook;
-}
-
-module.exports.sortBy = function (field, criterion) {
-    return function (phoneBook) {
-        var newphoneBook = [];
         if (criterion == 'asc') {
-            phoneBook = sort(phoneBook, field);
+            return phoneBook.sort(function (a, b) {
+                return a[record] - b[record];
+            });
         } else {
-            phoneBook = sort(phoneBook, field).reverse();
+            return phoneBook.sort.reverse(function (a, b) {
+                return a[record] - b[record];
+            });
         }
-        return phoneBook;
     };
 };
 
-module.exports.format = function (field, func) {
+module.exports.format = function (record, func) {
     return function (phoneBook) {
         for (var contact = 0; contact < phoneBook.length; contact++) {
-            phoneBook[contact][field] = func(phoneBook[contact][field]);
+            phoneBook[contact][record] = func(phoneBook[contact][record]);
         }
         return phoneBook;
     };
