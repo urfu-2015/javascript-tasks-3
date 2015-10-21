@@ -21,6 +21,9 @@ module.exports.reverse = function () {
 module.exports.limit = function (limit) {
     // Магия
     return function (collection) {
+        if (limit < 0) {
+            return collection
+        }
         return collection.slice(0, limit);
     };
 };
