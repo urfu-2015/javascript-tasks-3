@@ -26,21 +26,18 @@ module.exports.limit = function (n) {
 
 module.exports.select = function () {
     var fields = [].slice.call(arguments);
-    if (fields.length <= 0) {
+    if (!fields.length) {
         return [];
     }
     return function (collection) {
-        var newCollection = [];
-        collection.forEach(function (item) {
-            var newItem = {};
-            fields.forEach(function (field) {
-                if (typeof item[field] != 'undefined') {
+        return collection.map(function (item) {
+            return fields.reduce(function (newItem, field) {
+                if (typeof item[field] !== 'undefined') {
                     newItem[field] = item[field];
                 }
-            });
-            newCollection.push(newItem);
+                return newItem;
+            }, {});
         });
-        return newCollection;
     };
 };
 
