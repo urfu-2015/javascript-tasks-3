@@ -49,10 +49,7 @@ module.exports.filterEqual = function (field, element) {
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
-        var changedCollection = collection.reverse();
-
-        // Возращаем изменённую коллекцию
-        return changedCollection;
+        return collection.reverse();
     };
 };
 
@@ -82,7 +79,7 @@ module.exports.format = function (field, filter) {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        return collection.slice(0, n);
+        return n < 0 ? [] : collection.slice(0, n);
     };
 };
 
