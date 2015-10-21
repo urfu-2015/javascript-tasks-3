@@ -1,44 +1,51 @@
-module.exports.query = function(collection) {
+module.exports.query = function (collection) {
+    var collectionCopy = collection.slice();
     for (var i = 1; i < arguments.length; i++) {
-        collection = arguments[i](collection);
+        collectionCopy = (arguments[i])(collectionCopy);
     }
-    return collection;
+    return collectionCopy;
  };
  
  // Оператор reverse, который переворачивает коллекцию
-+module.exports.reverse = function() {
-+    return function(collection) {
-+        return collection.slice().reverse();
+module.exports.reverse = function() {
+    return function(collection) {
+        return collection.slice().reverse();
      };
  };
  
  // Оператор limit, который выбирает первые N записей
 
-module.exports.limit = function(n) {
-    return function(collection) {
-        if (n < 0) {
-            throw new new RangeError('Should`t be limited array negative number.');
+ module.exports.limit = function (n) {
+    var isValidIndex = true;
+    if (n < 0) {
+        console.error('Should`t be limited array negative number.');
+        isValidIndex = false;
+    }
+    return function (collection) {
+        if (isValidIndex) {
+            return collection.slice(0, n);
+        } else {
+            return collection;
         }
-        return collection.slice(0, n);
     };
- };
+};
  
- // Вам необходимо реализовать остальные операторы:
- // select, filterIn, filterEqual, sortBy, format, limit
-module.exports.select = function() {
-    var selectors = [].slice.call(arguments);
-    return function(collection) {
-        return collection.map(function(contact) {
-            var result = {};
-            selectors.forEach(selector => {
-                if (selector in contact) {
-                    result[selector] = contact[selector];
+module.exports.select = function () {
+    var fields = [].slice.call(arguments);
+    return function (collection) {
+        return collection.map(function (element) {
+            var newElement = {};
+            var keysInThisElement = Object.keys(element);
+            fields.forEach(function (key) {
+                if (keysInThisElement.indexOf(key) !== -1) {
+                    newElement[key] = element[key];
                 }
             });
-            return result;
+            return newElement;
         });
     };
 };
+
 
 module.exports.filterIn = function(selector, values) {
     return function(collection) {
@@ -54,16 +61,17 @@ module.exports.filterEqual = function(selector, value) {
     };
 };
 
-module.exports.sortBy = function(selector, type) {
-    return function(collection) {
-        type = type === 'asc' ? 1 : -1;
-        return collection.sort(function(contact1, contact2) {
-            if (contact1[selector] > contact2[selector]) {
-                return type;
-            } else {
-                return -type;
-            }
-        });
+module.exports.sortBy = function (field, order) {
+    var isValidArguments = true;
+    if (order !== 'asc' && order !== 'desc') {
+        console.error('Неправильный аргумент');
+        isValidArguments = false;
+    }
+    return function (collection) {
+        if (!isValidArguments) {
+            return collection;
+        }
+        return collection.sort(__getSortPredicate(field, order));
     };
 };
 
