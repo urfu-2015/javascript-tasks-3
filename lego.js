@@ -12,8 +12,7 @@ module.exports.query = function (collection) {
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
-        var changedCollection = collection.reverse();
-        return changedCollection;
+        return collection.reverse();
     };
 };
 
@@ -27,9 +26,8 @@ module.exports.limit = function (n) {
     return function (collection) {
         if (isValidIndex) {
             return collection.slice(0, n);
-        } else {
-            return collection;
         }
+        return collection;
     };
 };
 
@@ -124,17 +122,9 @@ module.exports.or = function () {
 module.exports.and = function () {
     var filters = [].slice.call(arguments);
     return function (collection) {
-        var resultCollection = collection.slice();
         filters.forEach(function (filter) {
-            var collectionByThisFilter = filter(collection);
-            for (var i = 0; i < resultCollection.length; i++) {
-                var elementIndex = collectionByThisFilter.indexOf(resultCollection[i]);
-                if (elementIndex == -1) {
-                    resultCollection.splice(i, 1);
-                    i--;
-                }
-            }
+            collection = filter(collection);
         });
-        return resultCollection;
+        return collection;
     };
 };
