@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports.query = function (collection /* операторы через запятую */) {
+module.exports.query = function (collection) {
     for (var i = 1; i < arguments.length; i++) {
         collection = arguments[i](collection);
     }
@@ -16,69 +16,62 @@ module.exports.reverse = function () {
 
 module.exports.limit = function (n) {
     return function (collection) {
+        n = n < 0 ? 0 : n;
         var changedCollection = collection.slice(0, n);
         return changedCollection;
     }
 };
 
 module.exports.select = function () {
-    var propertiesList = new Set(arguments);
+    var propList = new Set(arguments);
     return function (collection) {
-        var changedCollection = [].concat(collection);
-        for (var i = 0; i < changedCollection.length; i++) {
-            var collEntry = changedCollection[i];
-            var collEntryKeys = Object.keys(collEntry);
-            for (var j = 0; j < collEntryKeys.length; j++) {
-                var key = collEntryKeys[j];
-                if (!propertiesList.has(key)) {
-                    delete collEntry[key];
+        var changedCollection = collection.map(function (entry){
+            var newEntry = {};
+            var entryProps = Object.keys(entry);
+            entryProps.forEach(function (prop){
+                if (propList.has(prop)) {
+                    newEntry[prop] = entry[prop];
                 }
-            }
-        }
+            });
+            return newEntry;
+        });
         return changedCollection;
     }
 }
 
-module.exports.filterIn = function (property) {
-    var propValues = new Set(arguments[1]);
+module.exports.filterIn = function (property, propValues) {
+    propValues = new Set(propValues);
     return function (collection) {
-        var changedCollection = [].concat(collection);
-        for (var i = 0; i < changedCollection.length; i++) {
-            var collEntry = changedCollection[i];
-            if (!propValues.has(collEntry[property])) {
-                changedCollection.splice(i, 1);
-                i -= 1;
+        var changedCollection = collection.filter(function (entry){
+            var propValue = entry[property];
+            if (propValues.has(propValue)) {
+                return true;
             }
-        }
+            return false;
+        });
         return changedCollection;
     }
 }
 
 module.exports.filterEqual = function (property, propValue) {
     return function (collection) {
-        var changedCollection = [].concat(collection);
-        for (var i = 0; i < changedCollection.length; i++) {
-            var collEntry = changedCollection[i];
-            if (collEntry[property] != propValue) {
-                changedCollection.splice(i, 1);
-                i -= 1;
+        var changedCollection = collection.filter(function (entry) {
+            if (entry[property] === propValue) {
+                return true;
             }
-        }
+            return false;
+        });
         return changedCollection;
     }
 }
 
 module.exports.sortBy = function (property, order) {
-    if (order === 'asc') {
-        var compare = function (a, b) {
+    var compare = function (a, b) {
+        if (order === 'asc') {
             return a > b;
-        } 
-    }
-    else {
+        }
         if (order === 'desc') {
-            var compare = function (a, b) {
-                return a < b;
-            } 
+            return a < b;
         }
     }
     return function (collection) {
@@ -100,7 +93,7 @@ module.exports.sortBy = function (property, order) {
             }
         }
     return changedCollection;
-    } 
+    }
 }
 
 module.exports.format = function (property, _function) {
@@ -108,8 +101,41 @@ module.exports.format = function (property, _function) {
         var changedCollection = [].concat(collection);
         changedCollection.forEach(function (entry){
             entry[property] = _function(entry[property]);
-            return entry;
         });
     return changedCollection;
+    }
+}
+
+module.exports.or = function () {
+    var funcList = Object.assign(arguments);
+    return function(collection) {
+        var changedCollection = new Set();
+        for (var i = 0; i < funcList.length; i++) {
+            var func = funcList[i];
+            var funcResult = func(collection);
+            funcResult.forEach(function (entry) {
+                changedCollection.add(entry);
+            });
+        }
+        return changedCollection;
+    } 
+}
+
+module.exports.and = function () {
+    var funcList = Object.assign(arguments);
+    return function (collection) {
+        var func = funcList[0];
+        var funcResult = func(collection);
+        var commonEntries = new Set(funcResult);
+        for (var i = 1; i < funcList.length; i++) {
+            func = funcList[i];
+            var funcResult = func(collection);
+            commonEntries = funcResult.map(function (entry) {
+                if (commonEntries.has(entry)) {
+                    return entry;
+                }
+            });
+        }
+        return commonEntries;
     }
 }
