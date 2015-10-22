@@ -2,7 +2,7 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
-    var newCollection = module.exports.select('*')(collection); // *- все поля,
+    var newCollection = select('*')(collection); // *- все поля,
     //  просто копируем, чтобы не испортить исходник
     for (var i = 1; i < arguments.length; i++) {
         newCollection = arguments[i](newCollection);
@@ -16,7 +16,7 @@ module.exports.or = function () {
     return function (collection) {
         var newCollection = [];
         for (var i = 0; i < args.length; i++) {
-            var sourceCollection = module.exports.select('*')(collection);
+            var sourceCollection = select('*')(collection);
             var tempResult = args[i](sourceCollection);
             newCollection = newCollection.concat(tempResult);
         }
@@ -27,9 +27,9 @@ module.exports.or = function () {
 module.exports.and = function () {
     var args = arguments;
     return function (collection) {
-        var newCollection = module.exports.select('*')(collection);
+        var newCollection = select('*')(collection);
         for (var i = 0; i < args.length; i++) {
-            var sourceCollection = module.exports.select('*')(collection);
+            var sourceCollection = select('*')(collection);
             var tempResult = args[i](sourceCollection);
             newCollection = intersecArrays(newCollection, tempResult);
         };
@@ -51,14 +51,10 @@ function intersecArrays(first, second) {
 
 function isEqual(first, second) {
     for (var e in first) {
-        if (e in second) {
-            if (first[e] != second[e]) {
-                return false;
-            }
-        } else {
+        if (!second[e] || first[e] != second[e]) {
             return false;
-        }
-    }
+        };
+    };
     return true;
 };
 // Оператор reverse, который переворачивает коллекцию
@@ -70,7 +66,7 @@ module.exports.reverse = function () {
     };
 };
 
-module.exports.select = function () {
+var select = function () {
     var args = arguments;
     return function (collection) {
         var values = [];
@@ -90,6 +86,8 @@ module.exports.select = function () {
     };
 };
 
+module.exports.select = select;
+
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
@@ -100,8 +98,7 @@ module.exports.limit = function (n) {
         return newCollection;
     };
 };
-
-module.exports.filterIn = function (field, valid) {
+var filterIn = function (field, valid) {
     return function (collection) {
         var newCollection = [];
         for (var i = 0; i < collection.length; i++) {
@@ -115,15 +112,27 @@ module.exports.filterIn = function (field, valid) {
     };
 };
 
+module.exports.filterIn = filterIn;
 
 module.exports.filterEqual = function (field, value) {
-    return module.exports.filterIn(field, [value]);
+    return filterIn(field, [value]);
+};
+
+function sortBy(field) {
+    return function (a, b) {
+        if (a[field] > b[field]) {
+            return 1;
+        }
+        if (a[field] < b[field]) {
+            return -1;
+        }
+        return 0;
+    };
 };
 
 module.exports.sortBy = function (field, rule) {
     return function (collection) {
-        var newCollection = collection.sort((a, b) => a[field] > b[field] ? 1 :
-            a[field] < b[field] ? -1 : 0);
+        var newCollection = collection.sort(sortBy(field));
         if (rule === 'desc') {
             return newCollection.reverse();
         };
