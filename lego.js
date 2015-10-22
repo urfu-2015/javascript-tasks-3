@@ -8,59 +8,52 @@ module.exports.query = function (collection /* операторы через з�
     console.log(collection);
 };
 
-// Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
-        var changedCollection = collection.reverse();
-        // Возращаем изменённую коллекцию
-        return changedCollection;
+        return collection.reverse();
     };
 };
 
-// Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        var partCollection = collection.slice(0, n);
-        return partCollection;
+        if (n < 0) {
+            return false;
+        }
+        return collection.slice(0, n);
     };
 };
 
 module.exports.select = function () {
     var attributesCollection = [].slice.call(arguments);
     return function (collection) {
-        for (var i = 0; i < collection.length; ++i) {
-            var keys = Object.keys(collection[i]);
-            for (var j = 0; j < keys.length; ++j) {
-                if (!attributesCollection.some(attrCollection => attrCollection === keys[j])) {
-                    delete collection[i][keys[j]];
+        var changedCollection = [];
+        collection.forEach(function (contact) {
+            var keys = Object.keys(contact);
+            var contactClone = Object.assign({}, contact);
+            keys.forEach(function (attribute) {
+                if (!attributesCollection.some(attrCollection => attrCollection === attribute)) {
+                    delete contactClone[attribute];
                 }
-            }
-        }
-        return collection;
+            });
+            changedCollection.push(contactClone);
+        });
+        return changedCollection;
     };
 };
 
 module.exports.filterIn = function (attribute, values) {
     return function (collection) {
-        var changedCollection = [];
-        for (var i = 0; i < collection.length; ++i) {
-            if (values.some(value => collection[i][attribute] === value)) {
-                changedCollection.push(collection[i]);
-            }
-        }
-        return changedCollection;
+        return collection.filter(function (contact) {
+            return values.some(value => contact[attribute] === value);
+        });
     };
 };
 
 module.exports.filterEqual = function (attribute, value) {
     return function (collection) {
-        var changedCollection = [];
-        for (var i = 0; i < collection.length; ++i) {
-            if (collection[i][attribute] === value) {
-                changedCollection.push(collection[i]);
-            }
-        }
-        return changedCollection;
+        return collection.filter(function (contact) {
+            return contact[attribute] === value;
+        });
     };
 };
 
@@ -70,18 +63,20 @@ module.exports.sortBy = function (attribute, typeSort) {
             var method = (typeSort === 'asc') ? 1 : -1;
             if (isNaN(a[attribute])) {
                 return method * a[attribute].localeCompare(b[attribute]);
-            } else {
-                return method * (a[attribute] - b[attribute]);
             }
+            return method * (a[attribute] - b[attribute]);
         });
     };
 };
 
 module.exports.format = function (attribute, method) {
     return function (collection) {
-        for (var i = 0; i < collection.length; ++i) {
-            collection[i][attribute] = method(collection[i][attribute]);
-        }
-        return collection;
+        var changedCollection = [];
+        collection.forEach(function (contact) {
+            var contactClone = Object.assign({}, contact);
+            contactClone[attribute] = method(contactClone[attribute]);
+            changedCollection.push(contactClone);
+        });
+        return changedCollection;
     };
 };
