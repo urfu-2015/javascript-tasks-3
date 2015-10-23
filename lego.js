@@ -7,15 +7,19 @@ module.exports.query = function (collection) {
         var actionName = action[0];
         var actionFun = action[1];
 
-        if (actionName === 'coll') {
+        switch (actionName) {
             // функции типа coll обрабатывают всю коллекцию
-            collection = actionFun(collection);
-        } else if (actionName === 'filter') {
+            case 'coll':
+                collection = actionFun(collection);
+                break;
             // функции типа filter проверяют запись на соответствие условию
-            collection = collection.filter(actionFun);
-        } else if (actionName === 'transform') {
+            case 'filter':
+                collection = collection.filter(actionFun);
+                break;
             // функции типа transform трансформируют запись
-            collection = collection.map(actionFun);
+            case 'transform':
+                collection = collection.map(actionFun);
+                break;
         }
     }
     return collection;
@@ -35,9 +39,6 @@ module.exports.reverse = function () {
 module.exports.limit = function (n) {
     return ['coll', function (collection) {
         if (n >= 0) {
-            if (n >= collection.length) {
-                return collection;
-            }
             return collection.slice(0, n);
         } else {
             throw new RangeError('Parameter must be between 0 and ' + collection.length);
@@ -52,7 +53,9 @@ module.exports.select = function () {
     var selectedFields = [].slice.call(arguments);
     return ['transform', function (record) {
         return selectedFields.reduce(function (result, field) {
-            result[field] = record[field];
+            if (field in record) {
+                result[field] = record[field];
+            }
             return result;
         }, {});
     }];
