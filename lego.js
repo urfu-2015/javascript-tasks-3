@@ -17,41 +17,46 @@ function isFunction(func) {
     } else {
         return false;
     }
-}
+};
 
 // Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection, selectFields, filterCollection, sortCollection, formatCollection, limitCollection) {
+module.exports.query = function (collection,
+                                selectFields,
+                                filterCollection,
+                                sortCollection,
+                                formatCollection,
+                                limitCollection) {
     var qyeryRes = [];
-    
+
     if (isFunction(selectFields)) {
         qyeryRes = selectFields(collection);
     }
-    
+
     if (isFunction(filterCollection)) {
         qyeryRes = Array.from(filterCollection(qyeryRes));
         var i = 0;
         var l = qyeryRes.length;
         while (i < l) {
-            if (qyeryRes[i] === null){
+            if (qyeryRes[i] === null) {
                 qyeryRes.splice(i, 1);
             } else {
                 i++;
             }
-        } 
+        }
     }
-    
+
     if (isFunction(sortCollection)) {
         qyeryRes = Array.from(sortCollection(qyeryRes));
     }
-    
+
     if (isFunction(formatCollection)) {
         qyeryRes = Array.from(formatCollection(qyeryRes));
     }
-    
+
     if (isFunction(limitCollection)) {
         qyeryRes = Array.from(limitCollection(qyeryRes));
     }
-    
+
     return qyeryRes;
 };
 
@@ -68,11 +73,11 @@ module.exports.select = function () {
             fields.push(arguments[i]);
         }
     }
-    
-    var selectFields = function(collection) {
+
+    var selectFields = function (collection) {
         var newCollection = [];
         var record = {};
-        for (var i = 0, l = collection.length; i < l; i++) {     
+        for (var i = 0, l = collection.length; i < l; i++) {
             for (var j = 0, fl = fields.length; j < fl; j++) {
                 record[fields[j]] = collection[i][fields[j]];
             }
@@ -89,16 +94,16 @@ module.exports.filterIn = function (field, values) {
     var filter = {
         field: field,
         values: values
-    };    
-    
-    var filterCollection = function(collection) {
+    };
+
+    var filterCollection = function (collection) {
         for (var i = 0, l = collection.length; i < l; i++) {
             if (filter && filter.values.indexOf(collection[i][filter.field]) === -1) {
                 collection[i] = null;
             }
         }
         return collection;
-    }    
+    };
     return filterCollection;
 };
 
@@ -113,18 +118,20 @@ module.exports.sortBy = function (field, type) {
     var sorter = {
         field: field,
         type: type
-    };    
-    
-    var sortCollection = function(collection) {
-        var buferRecord;        
+    };
+
+    var sortCollection = function (collection) {
+        var buferRecord;
         for (var i = 0, l = collection.length; i < l; i++) {
             for (var j = i + 1, l = collection.length; j < l; j++) {
-                if (collection[i][sorter.field] > collection[j][sorter.field] && sorter.type === sortTypes.asc) {
+                if (collection[i][sorter.field] > collection[j][sorter.field] &&
+                    sorter.type === sortTypes.asc) {
                     buferRecord = Object.assign({}, collection[i]);
                     collection[i] = Object.assign({}, collection[j]);
                     collection[j] = Object.assign({}, buferRecord);
                     buferRecord = {};
-                } else if (collection[i][sorter.field] < collection[j][sorter.field] && sorter.type === sortTypes.desc) {
+                } else if (collection[i][sorter.field] < collection[j][sorter.field] &&
+                        sorter.type === sortTypes.desc) {
                     buferRecord = Object.assign({}, collection[i]);
                     collection[i] = Object.assign({}, collection[j]);
                     collection[j] = Object.assign({}, buferRecord);
@@ -132,8 +139,8 @@ module.exports.sortBy = function (field, type) {
                 }
             }
         }
-        return collection;        
-    };    
+        return collection;
+    };
     return sortCollection;
 };
 
@@ -146,40 +153,43 @@ module.exports.format = function (field, func) {
         field: field,
         func: func
     };
-    
-    var formatCollection = function(collection) {
+
+    var formatCollection = function (collection) {
         if (formater) {
             for (var i = 0, l = collection.length; i < l; i++) {
                 collection[i][formater.field] = formater.func(collection[i][formater.field]);
             }
         }
         return collection;
-    };    
+    };
     return formatCollection;
 };
 
 module.exports.filterEqual = function (field, value) {
-    return module.exports.filterIn(field, [value]);//без module.exports ошибка 'filterIn is not defined'
+    // без module.exports ошибка 'filterIn is not defined'
+    return module.exports.filterIn(field, [value]);
 };
 
 module.exports.or = function () {
     if (!arguments.length) {
-        return function() {return []};
+        return function () {
+            return [];
+        };
     }
     var someFunctions = Array.from(arguments);
-   
-    var justOr = function(collection) {
+
+    var justOr = function (collection) {
         var collections = [];
         var newCollection = [];
-        for (var i = 0, l = someFunctions.length; i < l; i++){
+        for (var i = 0, l = someFunctions.length; i < l; i++) {
             newCollection = Array.from(collection);
             collections.push(someFunctions[i](newCollection));
-            newCollection = []; 
-        }        
+            newCollection = [];
+        }
         var defaultValue;
-        for (var j = 0, cl = collection.length; j < cl; j++){
+        for (var j = 0, cl = collection.length; j < cl; j++) {
             defaultValue = false;
-            for (var i = 0, l = collections.length; i < l; i++){
+            for (var i = 0, l = collections.length; i < l; i++) {
                 defaultValue = defaultValue || collections[i][j];
             }
             if (defaultValue) {
@@ -193,18 +203,20 @@ module.exports.or = function () {
 
 module.exports.and = function () {
     if (!arguments.length) {
-        return function() {return []};
+        return function () {
+            return [];
+        };
     }
     var someFunctions = Array.from(arguments);
-   
-    var justAnd = function(collection) {
+
+    var justAnd = function (collection) {
         var collections = [];
         var newCollection = [];
-        for (var i = 0, l = someFunctions.length; i < l; i++){
+        for (var i = 0, l = someFunctions.length; i < l; i++) {
             newCollection = Array.from(collection);
             collections.push(someFunctions[i](newCollection));
-            newCollection = []; 
-        }       
+            newCollection = [];
+        }
         var defaultValue;
         for (var j = 0, cl = collection.length; j < cl; j++) {
             defaultValue = true;
@@ -216,14 +228,14 @@ module.exports.and = function () {
             }
         }
         return newCollection;
-    }
+    };
     return justAnd;
 };
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     var lim;
-    
+
     if (n === undefined) {
         lim = 0;
     }
@@ -231,13 +243,13 @@ module.exports.limit = function (n) {
     if (isNaN(lim) || lim < 1) {
         throw new Error('Invalid limit: ' + n);
     }
-    
-    var limitCollection = function(collection) {
+
+    var limitCollection = function (collection) {
         if (lim) {
             collection.splice(lim, Number.MAX_VALUE);
-        }   
+        }
         return collection;
-    }
-    
+    };
+
     return limitCollection;
 };
