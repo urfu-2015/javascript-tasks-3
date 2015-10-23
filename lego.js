@@ -22,7 +22,7 @@ module.exports.limit = function (limit) {
     // Магия
     return function (collection) {
         if (limit < 0) {
-            return collection
+            throw Error('Negative limit.');
         }
         return collection.slice(0, limit);
     };
@@ -35,63 +35,90 @@ module.exports.select = function () {
         return collection.map(function (item) {
             var result = {};
 
-            for (var i = 0; i < selectors.length; i++) {
-                if (selectors[i] in item) {
-                    result[selectors[i]] = item[selectors[i]];
+            selectors.forEach(function (selector) {
+                if (item.hasOwnProperty(selector)) {
+                    result[selector] = item[selector];
                 }
-            }
+            });
             return result;
         });
     };
 };
 
-module.exports.filterIn = function (filteredField, filter) {
+module.exports.filterIn = function (field, values) {
     return function (collection) {
-        return collection.filter(function (value) {
-            for (var i = 0; i < filter.length; i++) {
-                if (value[filteredField] === filter[i]) {
-                    return true;
-                }
-            }
-            return false;
+        return collection.filter(function (item) {
+            return values.some(function (value) {
+                return value === item[field];
+            });
         });
     };
 };
 
-module.exports.filterEqual = function (filteredField, filter) {
+module.exports.filterEqual = function (field, value) {
     return function (collection) {
-        return collection.filter(function (value) {
-            return value[filteredField] === filter;
+        return collection.filter(function (item) {
+            return item[field] === value;
         });
     };
 };
 
-module.exports.sortBy = function (sortField, sortType) {
+module.exports.sortBy = function (field, sortType) {
     return function (collection) {
+        var sortingCoefficient = sortType === 'asc' ? 1 : -1;
         return collection.sort(function (firstItem, secondItem) {
-            if (sortType === 'asc') {
-                if (firstItem[sortField] > secondItem[sortField]) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            } else {
-                if (firstItem[sortField] > secondItem[sortField]) {
-                    return -1;
-                } else {
-                    return 1;
-                }
+            if (firstItem[field] > secondItem[field]) {
+                return sortingCoefficient;
+            }
+            if (firstItem[field] < secondItem[field]) {
+                return -1 * sortingCoefficient;
+            }
+            if (firstItem[field] = secondItem[field]) {
+                return 0;
             }
         });
     };
 };
 
-module.exports.format = function (formattedField, func) {
+module.exports.format = function (field, func) {
     return function (collection) {
         return collection.map(function (item) {
-            item[formattedField] = func(item[formattedField]);
-            return item;
+            var copy = Object.assign({}, item);
+            copy[field] = func(copy[field]);
+            return copy;
         });
+    };
+};
+
+module.exports.or = function () {
+    var args = [].slice.call(arguments);
+
+    return function (collection) {
+        var result = [];
+
+        args.forEach(function (arg) {
+            arg(collection).forEach(function (item) {
+                if (result.length === 0 || !result.some(function (resultItem) {
+                        return resultItem === item;
+                    })) {
+                    result.push(item);
+                }
+            });
+        });
+        return result;
+    };
+};
+
+module.exports.and = function () {
+    var args = [].slice.call(arguments);
+
+    return function (collection) {
+        var result = collection;
+
+        args.forEach(function (item) {
+            result = item(result);
+        });
+        return result;
     };
 };
 // Вам необходимо реализовать остальные операторы:
