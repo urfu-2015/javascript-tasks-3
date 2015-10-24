@@ -21,11 +21,7 @@ module.exports.reverse = function () {
 
 module.exports.limit = function (n) {
     return function (collection) {
-        var changedCollection = [];
-        for (var count = 0; count < n; count++) {
-            changedCollection.push(collection[count]);
-        }
-        return changedCollection;
+        return collection.slice(0, Math.min(n, collection.length));
     };
 };
 
@@ -36,7 +32,9 @@ module.exports.select = function () {
         for (var count = 0; count < collection.length; count++) {
             var record = {};
             for (var arg = 0; arg < args.length; arg++) {
-                record[args[arg]] = collection[count][args[arg]];
+                if (collection[count][args[arg]]) {
+                    record[args[arg]] = collection[count][args[arg]];
+                }
             }
             changedCollection.push(record);
         }
@@ -47,7 +45,7 @@ module.exports.select = function () {
 module.exports.filterIn = function (key, values) {
     return function (collection) {
         var changedCollection = [];
-        for (var count=0; count<collection.length; count++) {
+        for (var count = 0; count < collection.length; count++) {
             if (values.indexOf(collection[count][key]) != -1) {
                 changedCollection.push(collection[count]);
             }
@@ -59,7 +57,7 @@ module.exports.filterIn = function (key, values) {
 module.exports.filterEqual = function (key, value) {
     return function (collection) {
         var changedCollection = [];
-        for (var count=0; count<collection.length; count++) {
+        for (var count = 0; count < collection.length; count++) {
             if (value == collection[count][key]) {
                 changedCollection.push(collection[count]);
             }
@@ -72,7 +70,7 @@ module.exports.sortBy = function (key, type) {
     return function (collection) {
         var changedCollection = collection;
         changedCollection.sort(function (a, b) {
-            return a[key]<b[key] ? -1 : 1;
+            return a[key] < b[key] ? -1 : 1;
         });
         if (type == 'desc') {
             changedCollection = changedCollection.reverse();
@@ -84,7 +82,7 @@ module.exports.sortBy = function (key, type) {
 module.exports.format = function (key, func) {
     return function (collection) {
         var changedCollection = [];
-        for (var count=0; count<collection.length; count++) {
+        for (var count = 0; count < collection.length; count++) {
             changedCollection.push(collection[count]);
             changedCollection[count][key] = func(collection[count][key]);
         }
@@ -111,8 +109,8 @@ module.exports.or = function () {
         var changedCollection = [];
         for (var i = 0; i < length; i++) {
             var newCollection = args[i](collection);
-            for (var j = 0; j < newCollection.length; j++){
-                if (!Contains(changedCollection, newCollection[j])){
+            for (var j = 0; j < newCollection.length; j++) {
+                if (!сontains(changedCollection, newCollection[j])) {
                     changedCollection.push(newCollection[j]);
                 }
             }
@@ -121,7 +119,7 @@ module.exports.or = function () {
     };
 };
 
-function Contains(collection, item){
+function сontains(collection, item) {
     for (var record = 0; record < collection.length; record++) {
         var fields = Object.keys(collection[record]);
         var equals = true;
@@ -130,7 +128,7 @@ function Contains(collection, item){
                 equals = false;
             }
         }
-        if (equals){
+        if (equals) {
             return true;
         }
     }
