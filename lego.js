@@ -28,7 +28,7 @@ module.exports.select = function (){
             var contact = collection[i];
             var newContact = {};
             for(var key in contact){
-                if(fields.indexOf(key) !== -1){
+                if(fields.hasOwnProperty(key)){
                     newContact[key] = contact[key];
                 }
             }
