@@ -24,12 +24,12 @@ module.exports.reverse = function () {
 module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
-        return collection.map(function(elem) {
-            return fields.reduce(function(accum, field) {
+        return collection.map(function (elem) {
+            return fields.reduce(function (accumulator, field) {
                 if (field in elem) {
-                    accum[field] = elem[field];
+                    accumulator[field] = elem[field];
                 }
-                return accum;
+                return accumulator;
             },
             {});
         });
@@ -89,16 +89,15 @@ module.exports.limit = function (size) {
 module.exports.or = function () {
     var operators = [].slice.call(arguments);
     return function (collection) {
-        var resultCollection = [];
-        operators.forEach(function (operator) {
+        return operators.reduce(function (resultCollection, operator) {
             var temp = operator(collection);
             temp.forEach(function (tempElem) {
                 if (resultCollection.indexOf(tempElem) === -1) {
                     resultCollection.push(tempElem);
                 }
             });
-        });
-        return resultCollection;
+            return resultCollection;
+        }, []);
     };
 };
 
