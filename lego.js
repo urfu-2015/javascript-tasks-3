@@ -4,11 +4,9 @@
 
 module.exports.query = function (collection) {
     if (typeof collection !== 'object') {
-        return null;
+        return [];
     }
-    var legoCollection = collection.map(function (item) {
-        return Object.assign({}, item);;
-    });
+    var legoCollection = [].slice.call(collection);
 
     for (var i = 1; i < arguments.length; i ++) {
         legoCollection = arguments[i](legoCollection);
@@ -20,12 +18,13 @@ module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
         return collection.map(function (item) {
-            for (var key in item) {
-                if (fields.indexOf(key) === -1) {
-                    delete item[key];
+            var newItem = new Object;
+            for (var key of fields) {
+                if (Object.keys(item).indexOf(key) !== -1) {
+                    newItem[key] = item[key];
                 }
             }
-            return item;
+            return newItem;
         });
     };
 };
@@ -59,20 +58,19 @@ module.exports.sortBy = function (field, type) {
             return collection.sort(function (a, b) {
                 return a[field] >= b[field] ? 1 : -1;
             });
-        } else {
-            return collection.sort(function (a, b) {
-                return b[field] >= a[field] ? 1 : -1;
-            });
         }
+        return collection.sort(function (a, b) {
+            return b[field] >= a[field] ? 1 : -1;
+        });
     };
 };
 
-module.exports.format = function (field, filter) {
+module.exports.format = function (field, handler) {
     return function (collection) {
-        return collection.map(function (item) {
-            item[field] = filter(item[field]);
-            return item;
+        collection.forEach(function (item) {
+            item[field] = handler(item[field]);
         });
+        return collection;
     };
 };
 
@@ -87,11 +85,17 @@ module.exports.or = function () {
     var conditions = [].slice.call(arguments);
 
     return function (collection) {
-        return conditions.map(function (item) {
-            return item(collection);
-        });
+        return conditions.reduce(function (tempCollection, item) {
+            return combination(tempCollection, item(collection));
+        }, []);
     };
 };
+function combination(arr1, arr2) {
+    arr2 = arr2.filter(item => {
+        return arr1.indexOf(item) === -1;
+    });
+    return arr1.concat(arr2);
+}
 
 module.exports.and = function () {
     var conditions = [].slice.call(arguments);
