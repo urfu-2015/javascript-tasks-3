@@ -3,8 +3,8 @@
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) {
     for (var i = 1; i < arguments.length; i++) {
-            collection = arguments[i](collection);
-        }
+        collection = arguments[i](collection);
+    }
     return collection;
 };
 
@@ -21,23 +21,27 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        var limitCollection = collection.slice(0, n);
-        return limitCollection;
-    }
+        if (n < 0) {
+            return limitCollection;
+        } else {
+            return collection.slice(0, n);
+        }
+    };
 };
 
-module.exports.select = function() {
+module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
         return collection.map(function (item) {
-            for (var key in item) {
-                if (fields.indexOf(key) === -1) {
-                    delete item[key];
-                    }
+            var newItem = {};
+            fields.forEach(function (key) {
+                if (Object.keys(item).indexOf(key) !== -1) {
+                    newItem[key] = item[key];
                 }
-            return item;
             });
-        };
+            return newItem;
+        });
+    };
 };
 
 module.exports.filterIn = function (field, values) {
@@ -45,20 +49,18 @@ module.exports.filterIn = function (field, values) {
     return function (collection) {
         return collection.filter(function (item) {
             for (var i = 0; i < valuesLength; i++) {
-                if (item[field] == values[i])
+                if (item[field] === values[i]) {
                     return true;
+                }
             }
-            return false;
-        })
+        });
     };
 };
 
 module.exports.filterEqual = function (field, value) {
     return function (collection) {
         return collection.filter(function (item) {
-            if (item[field] === value)
-                return true;
-            return false;
+            return item[field] === value;
         });
     };
 };
@@ -67,32 +69,32 @@ module.exports.sortBy = function (field, typeSort) {
     return function (collection) {
         var sortedCollection = collection.sort(function (a, b) {
             return a[field] - b[field];
-            });
+        });
         return typeSort === 'asc' ? sortedCollection : sortedCollection.reverse();
-        };
     };
+};
 
 module.exports.format = function (field, format) {
     return function (collection) {
-        var formatedCollection = collection.map(function (item) {
+        return collection.map(function (item) {
             item[field] = format(item[field]);
             return item;
-            });
-        return formatedCollection;
-        };
+        });
+    };
 };
 
 module.exports.or = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
         var resultOr = [];
-        for (var i = 0; i < fields.length; i++) {
-            var resultField = fields[i](collection);
-            for (var item in resultField)
-                if (resultOr.indexOf(resultField[item]) == -1)
-                    resultOr.push(resultField[item]);
-            return resultOr;
-        }
+        fields.forEach(function (filter) {
+            filter(collection).forEach(function (item) {
+                if (resultOr.indexOf(item) === -1) {
+                    resultOr.push(item);
+                }
+            });
+        });
+        return resultOr;
     };
 };
 
