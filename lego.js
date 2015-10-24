@@ -2,8 +2,7 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
-    var operators = [].slice.call(arguments);
-    operators.splice(0, 1);
+    var operators = [].slice.call(arguments, 1);
     operators.forEach(function (operator) {
         collection = operator(collection);
     });
@@ -25,30 +24,25 @@ module.exports.reverse = function () {
 module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
-        var result = [];
-        var resultElem = {};
-        collection.forEach(function (elem) {
-            fields.forEach(function (field) {
+        return collection.map(function(elem) {
+            return fields.reduce(function(accum, field) {
                 if (field in elem) {
-                    resultElem[field] = elem[field];
+                    accum[field] = elem[field];
                 }
-            });
-            result.push(resultElem);
+                return accum;
+            },
+            {});
         });
-        return result;
     };
 };
 
 //
-module.exports.filterIn = function () {
-    var args = [].slice.call(arguments);
-    var filterField = args[0];
-    var filterValues = args[1];
+module.exports.filterIn = function (filterField, filterValues) {
     return function (collection) {
         var result = [];
         collection.forEach(function (elem) {
             filterValues.forEach(function (value) {
-                if (elem[filterField] == value) {
+                if (elem[filterField] === value) {
                     result.push(elem);
                 }
             });
@@ -60,7 +54,7 @@ module.exports.filterIn = function () {
 //
 module.exports.filterEqual = function (field, value) {
     return function (collection) {
-        collection.filter(elem => (elem[field] === value));
+        return collection.filter(elem => elem[field] === value);
     };
 };
 
@@ -69,10 +63,7 @@ module.exports.sortBy = function (field, order) {
     return function (collection) {
         var newCollection = collection.sort((a, b) => a[field] > b[field] ? 1 :
             a[field] < b[field] ? -1 : 0);
-        if (order === 'desc') {
-            return newCollection.reverse();
-        };
-        return newCollection;
+        return (order === 'desc') ? newCollection.reverse() : newCollection;
     };
 };
 
@@ -100,7 +91,12 @@ module.exports.or = function () {
     return function (collection) {
         var resultCollection = [];
         operators.forEach(function (operator) {
-            resultCollection.push(operator(collection));
+            var temp = operator(collection);
+            temp.forEach(function (tempElem) {
+                if (resultCollection.indexOf(tempElem) === -1) {
+                    resultCollection.push(tempElem);
+                }
+            });
         });
         return resultCollection;
     };
