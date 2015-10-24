@@ -73,7 +73,7 @@ module.exports.sortBy = function (field, sortType) {
             if (firstItem[field] < secondItem[field]) {
                 return -1 * sortingCoefficient;
             }
-            if (firstItem[field] = secondItem[field]) {
+            if (firstItem[field] === secondItem[field]) {
                 return 0;
             }
         });
