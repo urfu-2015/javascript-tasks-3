@@ -45,7 +45,7 @@ module.exports.limit = function (n) {
 module.exports.select = function () {
     var selectArgs = [].slice.call(arguments);
     return function (collection) {
-        if (selectArgs.length === 0) {
+        if (!selectArgs.length) {
             return collection;
         }
         var resultCollection = [];
@@ -63,7 +63,7 @@ module.exports.select = function () {
 };
 
 module.exports.filterIn = function (param, values) {
-    if (arguments.length === 0 || arguments.length === 1) {
+    if (arguments.length <= 1) {
         return '';
     }
     return function (collection) {
@@ -80,7 +80,7 @@ module.exports.filterIn = function (param, values) {
 };
 
 module.exports.filterEqual = function (param, value) {
-    if (arguments.length === 0 || arguments.length === 1) {
+    if (arguments.length <= 1) {
         return '';
     }
     return module.exports.filterIn(param, [value]);
@@ -99,7 +99,7 @@ function findMin(collection, param) {
 }
 
 module.exports.sortBy = function (param, order) {
-    if (order !== 'asc' && order !== 'desc' || arguments.length === 0 || arguments.length === 1) {
+    if (['asc', 'desc'].indexOf(order) < 0 || arguments.length <= 1) {
         return '';
     }
     return function (collection) {
@@ -110,19 +110,18 @@ module.exports.sortBy = function (param, order) {
         for (var i = 0; i < unchangeableLen; i++) {
             minElementIndex = findMin(collection, param);
             minElement = collection[minElementIndex];
-            if (order === 'asc') {
-                resultCollection.push(minElement);
-            } else {
-                resultCollection.unshift(minElement);
-            }
+            resultCollection.push(minElement);
             collection.splice(minElementIndex, 1);
+        }
+        if (order === 'desc') {
+            resultCollection.reverse();
         }
         return resultCollection;
     };
 };
 
 module.exports.format = function (arg, func) {
-    if (arguments.length === 0) {
+    if (!arguments.length) {
         return '';
     }
     return function (collection) {
@@ -150,8 +149,8 @@ function areEqual(firstObj, secondObj) {
 module.exports.and = function () {
     var operators = [].slice.call(arguments);
     return function (collection) {
-        if (operators.length === 0) {
-            return "";
+        if (!operators.length) {
+            return '';
         }
         var tempCollection1 = operators[0](collection);
         var arrOfIntersected = new Array(tempCollection1.length);
@@ -179,8 +178,8 @@ module.exports.and = function () {
 module.exports.or = function () {
     var operators = [].slice.call(arguments);
     return function (collection) {
-        if (operators.length === 0) {
-            return "";
+        if (!operators.length) {
+            return '';
         }
         var resultCollection = operators[0](collection);
         for (var i = 1; i < operators.length; i++) {
