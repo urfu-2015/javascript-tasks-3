@@ -30,7 +30,8 @@ module.exports.select = function () {
 module.exports.filterIn = function (field, values) {
     return collection =>
         collection.filter(contact =>
-            values.find(value => value === contact[field]));
+            values.find(value =>
+                value.toLowerCase() === contact[field].toLowerCase()));
 };
 
 module.exports.filterEqual = function (field, value) {
