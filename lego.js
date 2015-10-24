@@ -9,13 +9,13 @@ module.exports.query = function (collection) {
 
 module.exports.reverse = function () {
     return function (collection) {
-        var changedCollection = collection.reverse();
-        return changedCollection;
+        return collection.reverse();
     };
 };
 
 module.exports.limit = function (n) {
     return function(collection){
+        n = n < 0 ? 0 : n;
         return collection.slice(0, n);
     }
 };
@@ -43,8 +43,8 @@ module.exports.filterIn = function (field, values){
         var newCollection = [];
         for(var i = 0; i < collection.length; i++){
             var contact = collection[i];
-            for(var key in contact){
-                if(key === field && values.indexOf(contact[key]) != -1){
+            for(var j = 0; j < values.length; j++){
+                if(contact[field] === values[j]){
                    newCollection.push(contact);
                 }
             }
@@ -68,6 +68,7 @@ module.exports.sortBy=function(field, parametr){
             if(a[field] < b[field]){
                 return -1;
             }
+            return 0;
         });
         if(parametr === 'desc'){
             return newCollection.reverse();
@@ -76,17 +77,16 @@ module.exports.sortBy=function(field, parametr){
     }
 }
 
-module.exports.format=function(field, func){
+module.exports.format=function(field, handler){
     return function(collection){
         var newCollection = [];
         for(var i = 0; i < collection.length; i++){
             var contact = collection[i];
-            var newContact = {};
-            for(var key in contact){
-                newContact[key] = key === field ? func(contact[key]) : contact[key];
-            }
+            var newContact = Object.assign({}, contact);
+            newContact[field] = handler(contact[field]);
             newCollection.push(newContact);
         }
         return newCollection;
     }
 }
+
