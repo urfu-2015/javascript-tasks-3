@@ -25,9 +25,9 @@ module.exports.reverse = function () {
 
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
+    n = n > 0 ? n : 0;
     return function (collection) {
-        var changedCollection = collection.slice(0, n);
-        return changedCollection;
+        return collection.slice(0, n);
     };
 };
 
@@ -48,13 +48,19 @@ module.exports.select = function () {
             }
             return true;
         });
-        return changedCollection;
+        return changedCollection.map(function (item) {
+            var newItem = {};
+            fields.forEach(function (field) {
+                newItem[field] = item[field];
+            });
+            return newItem;
+        });
     };
 };
 
 module.exports.filterIn = function (field, values) {
     return function (collection) {
-        var changedCollection = collection.filter(function (item) {
+        return collection.filter(function (item) {
             for (var i = 0; i < values.length; i++) {
                 if (item[field] === values[i]) {
                     return true;
@@ -62,19 +68,17 @@ module.exports.filterIn = function (field, values) {
             }
             return false;
         });
-        return changedCollection;
     };
 };
 
 module.exports.filterEqual = function (field, value) {
     return function (collection) {
-        var changedCollection = collection.filter(function (item) {
+        return collection.filter(function (item) {
             if (item[field] === value) {
                 return true;
             }
             return false;
         });
-        return changedCollection;
     };
 };
 
@@ -89,11 +93,10 @@ module.exports.sortBy = function (field, option) {
 
 module.exports.format = function (field, func) {
     return function (collection) {
-        var changedCollection = collection.map(function (item) {
+        return collection.map(function (item) {
             item[field] = func(item[field]);
             return item;
         });
-        return changedCollection;
     };
 };
 
