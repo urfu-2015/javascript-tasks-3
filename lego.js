@@ -17,7 +17,7 @@ module.exports.reverse = function () {
 module.exports.limit = function (n) {
     return function (collection) {
         if (n < 0) {
-            return false;
+            return [];
         }
         return collection.slice(0, n);
     };
@@ -26,18 +26,13 @@ module.exports.limit = function (n) {
 module.exports.select = function () {
     var attributesCollection = [].slice.call(arguments);
     return function (collection) {
-        var changedCollection = [];
-        collection.forEach(function (contact) {
-            var keys = Object.keys(contact);
-            var contactClone = Object.assign({}, contact);
-            keys.forEach(function (attribute) {
-                if (!attributesCollection.some(attrCollection => attrCollection === attribute)) {
-                    delete contactClone[attribute];
-                }
+        return collection.map(function (contact) {
+            var changedContact = {};
+            attributesCollection.forEach(function(attribute) {
+                changedContact[attribute] = contact[attribute];
             });
-            changedCollection.push(contactClone);
+            return changedContact;
         });
-        return changedCollection;
     };
 };
 
@@ -71,12 +66,10 @@ module.exports.sortBy = function (attribute, typeSort) {
 
 module.exports.format = function (attribute, method) {
     return function (collection) {
-        var changedCollection = [];
-        collection.forEach(function (contact) {
+        return collection.map(function (contact) {
             var contactClone = Object.assign({}, contact);
             contactClone[attribute] = method(contactClone[attribute]);
-            changedCollection.push(contactClone);
+            return contactClone;
         });
-        return changedCollection;
     };
 };
