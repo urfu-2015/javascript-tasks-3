@@ -22,11 +22,7 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        var firstN = [];
-        for (var i = 0; i < Math.min(n, collection.length); i++) {
-            firstN.push(collection[i]);
-        }
-        return firstN;
+        return collection.slice(0, n);
     };
 };
 
@@ -44,7 +40,7 @@ module.exports.select = function () {
             var record = collection[i];
             var newRecord = {};
             for (var key in record) {
-                if (values.indexOf(key) != -1) {
+                if (values.indexOf(key) !== -1) {
                     newRecord[key] = record[key];
                 }
             }
@@ -60,7 +56,7 @@ module.exports.filterIn = function (field, choice) {
         for (var i = 0; i < collection.length; i++) {
             var record = collection[i];
             var keys = Object.keys(record);
-            if (keys.indexOf(field) != -1 && choice.indexOf(record[field]) != -1) {
+            if (choice.indexOf(record[field]) !== -1) {
                 newBook.push(record);
             }
         }
@@ -72,20 +68,15 @@ module.exports.filterEqual = function (key, value) {
     return module.exports.filterIn(key, [value]);
 };
 
-module.exports.sortBy = function (key, method) {
+module.exports.sortBy = function (key, order) {
     return function (collection) {
         var newBook = collection.sort(function (first, second) {
-            if (first[key] > second[key]) {
-                return 1;
-            }
-            if (first[key] < second[key]) {
-                return -1;
-            }
-            return 0;
-        });
-        if (method === 'desc') {
-            return newBook.reverse();
-        }
+                if (first[key] > second[key]) {
+                    return order === 'asc' ? 1 : -1;
+                } else {
+                    return order === 'asc' ? -1 : 1;
+                }
+            });
         return newBook;
     };
 };
@@ -109,13 +100,10 @@ module.exports.format = function (field, func) {
 // or и and
 
 module.exports.and = function () {
-    var functions = arguments;
+    var functions = Array.prototype.slice.call(arguments);
     return function (collection) {
-        var newBook = collection;
-        for (var i = 0; i < functions.length; i++) {
-            newBook = functions[i](newBook);
-        }
-        return newBook;
+        var parameters = [collection].concat(functions);
+        return module.exports.query.apply(null, parameters);
     };
 };
 
@@ -126,7 +114,9 @@ module.exports.or = function () {
         for (var i = 0; i < functions.length; i++) {
             var newCollection = functions[i](collection);
             for (var j = 0; j < newCollection.length; j++) {
-                resultCollection.push(newCollection[j]);
+                if (resultCollection.indexOf(newCollection[j]) === -1) {
+                    resultCollection.push(newCollection[j]);
+                }
             }
         }
         return resultCollection;
