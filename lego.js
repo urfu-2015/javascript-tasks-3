@@ -5,7 +5,7 @@ module.exports.query = function (collection /* операторы через з�
     for (var i = 1; i < arguments.length; ++i) {
             collection = arguments[i](collection);
     }
-        console.log(collection);
+        return collection;
 }
 
 module.exports.select = function () {
@@ -13,8 +13,10 @@ module.exports.select = function () {
     return function (collection) {
         return collection.map(function (obj) {
             for (var key in obj) {
-                if (filters.indexOf(key) === -1) {
-                    delete obj[key];
+                if (obj.hasOwnProperty(key)) {
+                    if (filters.indexOf(key) === -1) {
+                        delete obj[key];
+                    }
                 }
             }
             return obj;
@@ -50,15 +52,10 @@ module.exports.filterEqual = function (key, filter) {
 
 module.exports.sortBy = function (key, order) {
     return function (collection) {
-        if (order === 'asc') {
-            return collection.sort(function (obj1, obj2) {
-                return obj1[key] >= obj2[key] ? 1 : -1;
-            });
-        } else {
-            return collection.sort(function (obj1, obj2) {
-                return obj1[key] <= obj2[key] ? 1 : -1;
-            });
-        }
+        collection.sort(function (obj1, obj2) {
+            return obj1[key] >= obj2[key] ? 1 : -1;
+        });
+        return order === 'asc' ? collection : collection.reverse();
     }
 }
 
@@ -78,3 +75,9 @@ module.exports.limit = function (n) {
         return collection.slice(0, n);
     }
 }
+
+// Вам необходимо реализовать остальные операторы:
+// select, filterIn, filterEqual, sortBy, format, limit
+
+// Будет круто, если реализуете операторы:
+// or и and
