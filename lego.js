@@ -22,7 +22,7 @@ module.exports.limit = function (n) {
         if (n < 0) {
             throw 'The number of entries must be positive';
         }
-        return n < collection.length ? collection.slice(0, n) : collection;
+        return collection.slice(0, n);
     };
 };
 
@@ -64,26 +64,18 @@ module.exports.filterEqual = function (fieldName, value) {
 // Оператор sortBy, сортирует по какому-то полю
 module.exports.sortBy = function (fieldName, sortType) {
     return function (collection) {
+        if (!sortType) {
+            sortType = 'asc';
+        }
         if (!(sortType === 'asc' || sortType === 'desc')) {
             throw 'Incorrect sorting method. Possible options: \'asc\', \'desc\'';
         }
-        if (sortType === 'asc') {
-            return collection.sort(function (a, b) {
-                if (a[fieldName] > b[fieldName]) {
-                    return 1;
-                }
-                if (a[fieldName] < b[fieldName]) {
-                    return -1;
-                }
-                return 0;
-            });
-        }
         return collection.sort(function (a, b) {
             if (a[fieldName] > b[fieldName]) {
-                return -1;
+                return sortType === 'asc' ? 1 : -1;
             }
             if (a[fieldName] < b[fieldName]) {
-                return 1;
+                return sortType === 'asc' ? -1 : 1;
             }
             return 0;
         });
@@ -97,5 +89,26 @@ module.exports.format = function (fieldName, formatFunction) {
             record[fieldName] = formatFunction(record[fieldName]);
         });
         return collection;
+    };
+};
+
+// Оператор or
+module.exports.or = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        var resultCollection = [];
+        operators.forEach(function (operator) {
+            resultCollection = resultCollection.concat(operator(collection));
+        });
+        return Array.from(new Set(resultCollection));
+    };
+};
+
+// Оператор and
+module.exports.and = function () {
+    var operators = [].slice.call(arguments);
+    return function (collection) {
+        var args = [collection].concat(operators);
+        return module.exports.query.apply(null, args);
     };
 };
