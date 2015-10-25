@@ -19,6 +19,9 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
+        if (n < 0) {
+            return collection.slice(0, 0);
+        }
         return collection.slice(0, n);
     };
 };
@@ -37,7 +40,7 @@ module.exports.filterIn = function (field, characteristic) {
         var filterCollection = [];
         collection.forEach(function (contact) {
             for (var i = 0; i < characteristic.length; i++) {
-                if (contact[field] == characteristic[i]) {
+                if (contact[field] === characteristic[i]) {
                     filterCollection.push(contact);
                 }
             }
@@ -49,7 +52,7 @@ module.exports.filterIn = function (field, characteristic) {
 module.exports.filterEqual = function (field, value) {
     return function (collection) {
         return collection.filter(function (contact) {
-            return (contact[field] === value);
+            return contact[field] === value;
         });
     };
 };
@@ -65,9 +68,10 @@ module.exports.sortBy = function (field, sortType) {
             }
             return 0;
         };
-        var sortedCollection = collection.sort(sortFunction);
+        var sortedCollection = collection;
+        sortedCollection.sort(sortFunction);
         if (sortType === 'desc') {
-            sortedCollection = sortedCollection.reverse();
+            sortedCollection.reverse();
         }
         return sortedCollection;
     };
@@ -75,16 +79,16 @@ module.exports.sortBy = function (field, sortType) {
 
 module.exports.select = function () {
     var fields = [].slice.call(arguments);
-        return function (collection) {
-            return collection.map(function (item) {
-                for (var key in item) {
-                    if (fields.indexOf(key) === -1) {
-                        delete item[key];
-                    }
+    return function (collection) {
+        return collection.map(function (item) {
+            for (var key in item) {
+                if (fields.indexOf(key) === -1) {
+                    delete item[key];
                 }
-                return item;
-            });
-        };
+            }
+            return item;
+        });
+    };
 };
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
