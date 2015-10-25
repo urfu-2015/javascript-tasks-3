@@ -12,7 +12,7 @@ module.exports.reverse = function () {
 };
 
 module.exports.limit = function (n) {
-    return collection => collection.slice(0, n);
+    return collection => collection.slice(0, Math.max(n, 0));
 };
 
 module.exports.select = function () {
@@ -20,24 +20,27 @@ module.exports.select = function () {
     return collection =>
         collection.map(contact => {
             var newContact = {};
-            fields.forEach(function (field) {
-                newContact[field] = contact[field];
+            fields.forEach(field => {
+                if (field in contact) {
+                    newContact[field] = contact[field];
+                }
             });
             return newContact;
         });
 };
 
-module.exports.filterIn = function (field, values) {
+module.exports.filterIn = filterIn;
+
+function filterIn(field, values) {
     return collection =>
         collection.filter(contact =>
-            values.find(value =>
-                value.toLowerCase() === contact[field].toLowerCase()));
+            field in contact && values.find(value =>
+                value.toString().toLowerCase() ===
+                contact[field].toString().toLowerCase()));
 };
 
 module.exports.filterEqual = function (field, value) {
-    return collection =>
-        collection.filter(contact =>
-            contact[field] === value);
+    return collection => filterIn(field, [value])(collection);
 };
 
 module.exports.sortBy = function (field, type) {
@@ -59,7 +62,8 @@ module.exports.or = function () {
     return collection => {
         var repeats = countRepeats(manyFunctions(collection, arguments));
         return collection
-            .filter(contact => repeats[contact.email]);
+            .filter(contact =>
+                repeats[JSON.stringify(contact)]);
     };
 };
 
@@ -67,21 +71,24 @@ module.exports.and = function () {
     return collection => {
         var repeats = countRepeats(manyFunctions(collection, arguments));
         return collection
-            .filter(contact => repeats[contact.email] === arguments.length);
+            .filter(contact =>
+                repeats[JSON.stringify(contact)] === arguments.length);
     };
 };
 
 function manyFunctions(collection, args) {
     var functions = [].slice.call(args);
-    return functions.reduce(function (func1, func2) {
-        return func1(collection).concat(func2(collection));
-    });
+    return functions.reduce((result, func) => {
+        return result.concat(func(collection));
+    }, []);
 }
 
 function countRepeats(book) {
-    var dict = {};
-    book.forEach(contact => {
-        dict[contact.email] = dict[contact.email] ? dict[contact.email] + 1 : 1;
-    });
-    return dict;
+    return book.reduce((result, contact) => {
+        var stringContact = JSON.stringify(contact);
+        result[stringContact] ?
+            result[stringContact]++ :
+            result[stringContact] = 1;
+        return result;
+    }, {});
 }

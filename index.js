@@ -6,6 +6,24 @@ var phoneBook = require('./phoneBook');
 // Подключаем волшебный конструктор запросов
 var lego = require('./lego');
 
+console.log(lego.query(
+    phoneBook,
+    lego.select('name', 'age'),
+    lego.or(
+        lego.filterEqual('age', '21'),
+        lego.filterEqual('name', 'Анна')
+    )
+));
+
+console.log(lego.query(
+    phoneBook,
+    lego.or(
+        lego.filterEqual('age', 20),
+        lego.filterEqual('age', 33),
+        lego.filterEqual('name', 'Анна')
+    )
+));
+
 // Мы хотим найти подходящих друзей для вечеринки
 var result = lego.query(
 
@@ -30,7 +48,7 @@ var result = lego.query(
     lego.limit(10)
 );
 
-console.log(result);
+// console.log(result);
 
 var result = lego.query(
     phoneBook,
@@ -48,4 +66,4 @@ var result = lego.query(
     )
 );
 
-console.log(result);
+// console.log(result);
