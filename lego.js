@@ -96,36 +96,19 @@ module.exports.format = function (field, func) {
 
 // Будет круто, если реализуете операторы:
 // or и and
-function equalsNotes(a, b) {
-    var result = false;
-    for (var keyA in a) {
-        for (var keyB in b) {
-            if (keyA == keyB) {
-                if (a[keyA] == b[keyB]) {
-                    result = true;
-                    break;
-                }
-            }
-        }
-    }
-    return result;
-}
-
 function mergerCollections(a, b) {
     var result = a;
     var bool;
-
     b.forEach(function (noteB) {
         bool = false;
-        for (var noteA in a) {
-            if (equalsNotes(noteA, noteB)) {
+        a.forEach(function (noteA){
+            if (noteA.name == noteB.name) {
                 bool = true;
-                break;
             }
-        }
+        });
+
         if (!bool) {
             result.push(noteB);
-            b.slice(b.indexOf(noteB), 1);
         }
     });
     return result;
@@ -137,7 +120,6 @@ module.exports.or = function () {
         var resultCollection = [];
         for (var i = 0; i < arg.length; i++) {
             resultCollection = mergerCollections(resultCollection, arg[i](collection));
-            console.log(resultCollection);
         }
         return resultCollection;
     };
