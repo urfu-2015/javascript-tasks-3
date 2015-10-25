@@ -14,7 +14,7 @@ module.exports.select = function () {
     for (var i = 0; i < arguments.length; i++) {
         args.push(arguments[i]);
     }
-    args.join();
+    args = args.join();
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
@@ -55,7 +55,7 @@ module.exports.filterIn = function (propName, variants) {
 
 module.exports.sortBy = function (param, order) {
     return function (collection) {
-        order = !order || order === 'asc' ? true : false;
+        order = !order || order === 'asc';
         return collection.sort(function (a, b) {
             if (a[param] < b[param]) {
                 return order ? -1 : 1;
@@ -71,8 +71,10 @@ module.exports.sortBy = function (param, order) {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        var len = collection.length;
-        return collection.slice(0, Math.max(n % len, 0));
+        if (n < 0 || n >= collection.length) {
+            n = collection.length - 1;
+        }
+        return collection.slice(0, n);
     };
     // Магия
 };
@@ -128,7 +130,9 @@ module.exports.or = function () {
         for (var i = 0; i < functions.length; i++) {
             var funcResult = functions[i](collection);
             for (var j = 0; j < funcResult.length; j++) {
-                addElem(newCollection, funcResult[j]);
+                if (!inCollection(newCollection, funcResult[j])) {
+                    collection.push(funcResult[j]);
+                }
             }
         }
         return newCollection;
@@ -144,17 +148,20 @@ function inArgs(args, prop) {
     return false;
 }
 
-function addElem(collection, elem) {
-    for (var i = 0; i < collection.length; i++) {
-        var eq = true;
-        for (var prop in collection[i]) {
-            if (elem[prop] !== collection[i][prop]) {
-                eq = false;
-            }
-        }
-        if (eq) {
-            return;
+function isEqual(a, b) {
+    for (var prop in a) {
+        if (a[prop] !== b[prop]) {
+            return false;
         }
     }
-    collection.push(elem);
+    return true;
+}
+
+function inCollection(collection, elem) {
+    for (var i = 0; i < collection.length; i++) {
+        if (isEqual(collection[i], elem)) {
+            return true;
+        }
+    }
+    return false;
 }
