@@ -24,7 +24,7 @@ function limit(n) {
         if (collection.length >= n) {
             return collection.slice(0, n);
         } else {
-            return collection.slice(0);
+            return collection;
         }
     };
 }
@@ -36,8 +36,9 @@ function select() {
         for (var i = 0; i < collection.length; i++) {
             var record = {};
             for (var j = 0; j < fields.length; j++) {
-                if (collection[i][fields[j]]) {
-                    record[fields[j]] = collection[i][fields[j]];
+                var key = fields[j];
+                if (collection[i][key]) {
+                    record[key] = collection[i][key];
                 }
             }
             changedCollection.push(record);
@@ -50,11 +51,12 @@ function filterIn(field, values) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            if (collection[i][field]) {
-                for (var j = 0; j < values.length; j++) {
-                    if (collection[i][field] === values[j]) {
-                        changedCollection.push(collection[i]);
-                    }
+            if (!collection[i][field]) {
+                continue;
+            }
+            for (var j = 0; j < values.length; j++) {
+                if (collection[i][field] === values[j]) {
+                    changedCollection.push(collection[i]);
                 }
             }
         }
@@ -85,8 +87,11 @@ function sortBy(field, order) {
             sign = -1;
         }
         changedCollection.sort(function (a, b) {
-            if (a[field] >= b[field]) {
+            if (a[field] > b[field]) {
                 return sign;
+            }
+            if (a[field] === b[field]) {
+                return 0;
             }
             if (a[field] < b[field]) {
                 return -1 * sign;
@@ -98,20 +103,37 @@ function sortBy(field, order) {
 
 function format(field, func) {
     return function (collection) {
-        var changedCollection = collection.slice(0);
-        for (var i = 0; i < collection.length; i++) {
-            changedCollection[i][field] = func(changedCollection[i][field]);
-        }
-        return changedCollection;
+        return collection.map(function (record) {
+            record[field] = func(record[field]);
+            return record;
+        });
     };
 }
 
 function and() {
-
+    var filters = [].slice.call(arguments);
+    return function (collection) {
+        for (var i = 0; i < filters.length; i++) {
+            collection = filters[i](collection);
+        }
+        return collection;
+    };
 }
 
 function or() {
-
+    var filters = [].slice.call(arguments);
+    return function (collection) {
+        var changedCollection = [];
+        for (var i = 0; i < filters.length; i++) {
+            var filteredCollection = filters[i](collection);
+            for (var j = 0; j < filteredCollection.length; j++) {
+                if (changedCollection.indexOf(filteredCollection[j]) === -1) {
+                    changedCollection.push(filteredCollection[j]);
+                }
+            }
+        }
+        return changedCollection;
+    };
 }
 
 module.exports = {
