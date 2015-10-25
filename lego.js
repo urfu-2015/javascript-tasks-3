@@ -22,7 +22,8 @@ module.exports.reverse = function () {
 module.exports.limit = function (n) {
     return function (collection) {
         var newCollection = [];
-        for (var i = 0; i < n; i++) {
+        var count = Math.min(n, collection.length);
+        for (var i = 0; i < count; i++) {
             newCollection.push(collection[i]);
         }
         return newCollection;
@@ -38,7 +39,8 @@ module.exports.select = function () {
             var newContact = {};
             for (var j = 0; j < fields.length; j++) {
                 var field = fields[j];
-                newContact[field] = contact[field];
+                if (contact[field] !== undefined)
+                    newContact[field] = contact[field];
             }
             newCollection.push(newContact);
         }
@@ -73,21 +75,18 @@ module.exports.filterEqual = function (field, value) {
 };
 
 module.exports.sortBy = function (field, sortType) {
+    var orderSign = (sortType === 'desc' ? -1 : 1);
     return function (collection) {
         var sortFunction = function (a, b) {
             if (a[field] > b[field]) {
-                return 1;
+                return orderSign;
             }
             if (a[field] < b[field]) {
-                return -1;
+                return -orderSign;
             }
             return 0;
         };
-        var sortedCollection = collection.sort(sortFunction);
-        if (sortType === 'desc') {
-            sortedCollection = sortedCollection.reverse();
-        }
-        return sortedCollection;
+        return collection.sort(sortFunction);
     };
 };
 
