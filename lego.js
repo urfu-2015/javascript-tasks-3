@@ -37,9 +37,9 @@ module.exports.select = function (field) {
         return collection.map(function (contact) {
             var newObject = {};
             for (var i = 0; i < keys.length; ++i) {
-				if (contact.hasOwnProperty(keys[i])) {
-					newObject[keys[i]] = contact[keys[i]];
-				}
+                if (contact.hasOwnProperty(keys[i])) {
+                    newObject[keys[i]] = contact[keys[i]];
+                }
             }
             return newObject;
         });
@@ -48,30 +48,30 @@ module.exports.select = function (field) {
 
 module.exports.filterIn = function (field, condition) {
     return function (collection) {
-		if (collection[0].hasOwnProperty(field)) {
-			return collection.filter(function (contact) {
-				for (var i in condition) {
-					if (contact[field].toLowerCase() === condition[i].toLowerCase()) {
-						return true;
-					}
-				}
-				return false;
-			});
-		} else {
-			return [];
-		}
+        if (collection[0].hasOwnProperty(field)) {
+            return collection.filter(function (contact) {
+                for (var i in condition) {
+                    if (contact[field].toLowerCase() === condition[i].toLowerCase()) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        } else {
+            return [];
+        }
     };
 };
 
 module.exports.filterEqual = function (field, condition) {
     return function (collection) {
-		if (collection[0].hasOwnProperty(field)) {
-			return collection.filter(function (contact) {
-				return contact[field].toLowerCase() === condition.toLowerCase() ? true : false;
-			});
-		} else {
-			return [];
-		}
+        if (collection[0].hasOwnProperty(field)) {
+            return collection.filter(function (contact) {
+                return contact[field].toLowerCase() === condition.toLowerCase() ? true : false;
+            });
+        } else {
+            return [];
+        }
     };
 };
 
