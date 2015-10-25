@@ -44,9 +44,7 @@ module.exports.select = function () {
 /** Оператор filterIn, который сортирует по какому-то ключу и значениям
  * @return {function}
  */
-module.exports.filterIn = function () {
-    var keyForFilter = arguments[0];
-    var exceptedValues = arguments[1];
+module.exports.filterIn = function (keyForFilter, exceptedValues) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
@@ -66,9 +64,7 @@ module.exports.filterIn = function () {
 /** Оператор filterEqual, который сортирует по какому-то ключу и значению
  * @return {function}
  */
-module.exports.filterEqual = function () {
-    var keyForFilter = arguments[0];
-    var exceptedValue = arguments[1];
+module.exports.filterEqual = function (keyForFilter, exceptedValue) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
@@ -84,15 +80,13 @@ module.exports.filterEqual = function () {
 /** Оператор sortBy, который сортирует по какому-то ключу и значению
  * @return {function}
  */
-module.exports.sortBy = function () {
-    var keyForSort = arguments[0];
-    var typeOfSort = arguments[1];
+module.exports.sortBy = function (keyForSort, typeOfSort) {
     return function (collection) {
         function comparePeople(a, b) {
-            if (parseInt(a[keyForSort]) > parseInt(b[keyForSort])) {
+            if (a[keyForSort] > b[keyForSort]) {
                 return 1;
             }
-            if (parseInt(a[keyForSort]) < parseInt(b[keyForSort])) {
+            if (a[keyForSort] < b[keyForSort]) {
                 return -1;
             }
             return 0;
@@ -120,13 +114,11 @@ module.exports.reverse = function () {
 /** Оператор format, который меняет формат какого-то значения
  * @return {function}
  */
-module.exports.format = function () {
-    var keyForFormat = arguments[0];
-    var newFormatFunc = arguments[1];
+module.exports.format = function (key, func) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            collection[i][keyForFormat] = newFormatFunc(collection[i][keyForFormat]);
+            collection[i][key] = func(collection[i][key]);
             changedCollection.push(collection[i]);
         }
         // Возращаем изменённую коллекцию
@@ -141,6 +133,12 @@ module.exports.format = function () {
  */
 module.exports.limit = function (n) {
     return function (collection) {
+        if (n > collection.length) {
+            n = collection.length;
+        }
+        if (n < 0) {
+            n = 0;
+        }
         var changedCollection = [];
         for (var i = 0; i < n; i++) {
             changedCollection.push(collection[i]);
@@ -165,7 +163,7 @@ module.exports.or = function () {
             }
         }
         // Возращаем изменённую коллекцию
-        return changedCollection;
+        return result;
     };
 };
 
