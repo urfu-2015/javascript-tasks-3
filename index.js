@@ -30,9 +30,11 @@ var result = lego.query(
     lego.limit(10)
 );
 
+console.log(result);
+
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
 
-/*var result = lego.query(
+var result = lego.query(
     phoneBook,
 
     // Выбираем всех парней, которые любят картофель, и всех девушек, которые любят яблоки
@@ -46,4 +48,4 @@ var result = lego.query(
             lego.filterIn('favoriteFruit', ['Яблоко'])
         )
     )
-);*/
+);

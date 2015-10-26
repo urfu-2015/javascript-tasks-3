@@ -6,7 +6,6 @@ module.exports.query = function (collection /* операторы через з�
     for (var i = 1; i < arguments.length; i++) {
         filterBook = arguments[i](filterBook);
     }
-    console.log(filterBook);
     return filterBook;
 };
 
@@ -23,6 +22,7 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
+        if (n < 0) n = 0;
         return n < collection.length ? collection.slice(0, n) : collection;
     }
     // Магия
@@ -34,10 +34,11 @@ module.exports.select = function () {
         var filterCollection = [];
 
         for (var k in collection) {
-            filterCollection[k] = [];
+            filterCollection[k] = {};
             for (var i in keys) {
                 var key = keys[i];
-                filterCollection[k][key] = collection[k][key];
+                if (key in collection[k])
+                    filterCollection[k][key] = collection[k][key];
             }
         }
 
@@ -95,5 +96,25 @@ module.exports.filterEqual = function (key, expectedValue) {
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
 
+module.exports.or = function () {
+    var functions = [].slice.apply(arguments);
+    return function () {
+        var filters = [].slice.apply(arguments);
+
+        
+    }
+}
+
+module.exports.and = function() {
+    var functions = [].slice.apply(arguments);
+    return function (collection) {
+
+        functions.forEach(function(func) {
+            collection = func(collection);
+        });
+
+        return collection;
+    }
+}
 // Будет круто, если реализуете операторы:
 // or и and
