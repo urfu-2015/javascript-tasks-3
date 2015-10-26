@@ -4,8 +4,6 @@
 module.exports.query = function (collection) {
     for (var i = 1; i < arguments.length; i++) {
         collection = arguments[i](collection);
-        if (i == 5) {
-        }
     }
     return collection;
 };
@@ -38,7 +36,9 @@ module.exports.select = function () {
         collection.forEach(function (item, i, arr) {
             var contact = {};
             args.forEach(function (key, j, arr) {
-                contact[key] = item[key];
+                if (item[key]) {
+                    contact[key] = item[key];
+                }
             });
             newCollection.push(contact);
         });
@@ -49,8 +49,8 @@ module.exports.select = function () {
 module.exports.filterIn = function (filterKey, filterValue) {
     return function (collection) {
         var newCollection = [];
-        filterValue.forEach(function (value, i, arr) {
-            collection.forEach(function (item, i, arr) {
+        collection.forEach(function (item, i, arr) {
+            filterValue.forEach(function (value, i, arr) {
                 if (value == item[filterKey]) {
                     newCollection.push(item);
                 }
@@ -63,9 +63,9 @@ module.exports.filterIn = function (filterKey, filterValue) {
 module.exports.filterEqual = function (filterKey, filterValue) {
     return function (collection) {
         var newCollection = [];
-        collection.forEach(function (item, i, arr) {
-            if (filterValue == item[filterKey]) {
-                newCollection.push(item);
+        collection.reduce(function (previousValue, currentValue) {
+            if (currentValue[filterKey] === filterValue) {
+                newCollection.push(currentValue);
             }
         });
         return newCollection;
@@ -74,18 +74,29 @@ module.exports.filterEqual = function (filterKey, filterValue) {
 
 module.exports.sortBy = function (sortKey, sortingOrder) {
     return function (collection) {
-        collection.sort(function (a, b) {
-            if (a[sortKey] > b[sortKey]) {
-                return 1;
-            }
-            if (a[sortKey] < b[sortKey]) {
-                return -1;
-            }
-            return 0;
-        });
-        return (sortingOrder === 'asc') ? collection : collection.reverse();
+        if (sortingOrder === 'asc') {
+            collection.sort(function (a, b) {
+                return sortValue(a, b, sortKey);
+            });
+        }
+        if (sortingOrder === 'desc') {
+            collection.sort(function (a, b) {
+                return sortValue(b, a, sortKey);
+            });
+        }
+        return collection;
     };
 };
+
+function sortValue(a, b, sortKey) {
+    if (a[sortKey] > b[sortKey]) {
+        return 1;
+    }
+    if (a[sortKey] < b[sortKey]) {
+        return -1;
+    }
+    return 0;
+}
 
 module.exports.format = function (formatKey, format) {
     return function (collection) {
