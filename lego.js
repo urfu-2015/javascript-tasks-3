@@ -4,7 +4,7 @@
 module.exports.query = function (collection /* операторы через запятую */) {
     var changedCollection = collection;
     for (var func in arguments) {
-        if (func != '0') {
+        if (typeof arguments[func] == "function") {
             changedCollection = arguments[func](changedCollection);
         }
     }
@@ -26,6 +26,9 @@ module.exports.limit = function (n) {
     // Магия.
     return function (collection) {
         var changedCollection = [];
+        if (collection.length < n){
+            n = collection.length;
+        }
         for (var element = 0; element < n; element++) {
             changedCollection.push(collection[element]);
         }
@@ -38,28 +41,24 @@ module.exports.limit = function (n) {
 module.exports.select = function () {
     var change = [].slice.call(arguments);
     return function (collection) {
-        var changedCollection = [];
-        for (var element = 0; element < collection.length; element++) {
+        var changedCollection = collection.map(function(element){
             var friend = {};
-            for (var key in collection[element]) {
+            for (var key in element) {
                 if (change.indexOf(key) != -1) {
-                    friend[key] = collection[element][key];
+                    friend[key] = element[key];
                 }
             }
-            changedCollection.push(friend);
-        }
+            return friend;
+        });
         return changedCollection;
     };
 };
 
 module.exports.filterIn = function (field, values) {
     return function (collection) {
-        var changedCollection = [];
-        for (var element in collection) {
-            if (values.indexOf(collection[element][field]) != -1) {
-                changedCollection.push(collection[element]);
-            }
-        }
+        var changedCollection = collection.filter(function(element){
+            return values.indexOf(element[field]) != -1
+        });
         return changedCollection;
     };
 };
@@ -67,7 +66,7 @@ module.exports.filterIn = function (field, values) {
 module.exports.sortBy = function (key, order) {
     return function (collection) {
         function sortedRule(first, second){
-            return first[key] - second[key];
+            return first[key] < second[key] ? -1 : first[key] > second[key] ? 1 : 0
         }
         var changedCollection = collection.sort(sortedRule);
         if (order === 'desc') {
@@ -79,25 +78,19 @@ module.exports.sortBy = function (key, order) {
 
 module.exports.format = function (key, show) {
     return function (collection) {
-        var changedCollection = [];
-        for (var element in collection) {
-            var changedMan = collection[element];
-            changedMan[key] = show(collection[element][key]);
-            changedCollection.push(changedMan);
-        }
-        console.log(changedCollection);
+        var changedCollection = collection.map(function(element){
+            element[key] = show(element[key]);
+            return element;
+        });
         return changedCollection;
     };
 };
 
 module.exports.filterEqual = function (key, value) {
     return function (collection) {
-        var changedCollection = [];
-        for (var elem = 0; elem < collection.length; elem++) {
-            if (collection[elem][key] === value) {
-                changedCollection.push(collection[elem]);
-            }
-        }
+        var changedCollection = collection.filter(function(element){
+            return element[key] == value;
+        });
         return changedCollection;
     };
 };
