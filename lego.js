@@ -2,8 +2,9 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) {
-    for (var i = 1; i < arguments.length; i++)
+    for (var i = 1; i < arguments.length; i++) {
         collection = arguments[i](collection);
+    }
     return collection;
 };
 
@@ -18,6 +19,10 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (limit) {
     return function (collection) {
+        if (limit <= 0) {
+            return '';
+        }
+
         var arrCollection = [];
         for (var i = 0; i <= limit; i++) {
             arrCollection.push(collection[i]);
@@ -28,13 +33,13 @@ module.exports.limit = function (limit) {
 
 // Оператор select, который выбирает только нужные поля
 module.exports.select = function () {
-    var args = [].slice.call(arguments);
     return function (collection) {
         var person = {};
         var result = [];
-        for (var i in collection) {
-            for (var j in args) {
-                person[args[j]] = collection[i][args[j]];
+
+        for (var i = 0; i < collection.length; i++) {
+            for (var j = 0; j < arguments.length; j++) {
+                person[arguments[j]] = collection[i][arguments[j]];
             }
             result.push(person);
         }
@@ -45,50 +50,42 @@ module.exports.select = function () {
 // Оператор filterIn, которым выбираем тех, кто любит Яблоки и Картофель
 module.exports.filterIn = function (filter, queries) {
     return function (collection) {
-        var person = collection[i];
-        var result = [];
-        for (var i = 0; i < collection.length; i++) {
-            if (queries.indexOf(person[filter]) !== -1) {
-                result.push(person);
+        return collection.filter(function (person) {
+            for (var i = 0; i < queries.length; i++) {
+                if (person[filter] === queries[i]) {
+                    return true;
+                }
             }
-        }
-        return result;
+            return false;
+        });
     };
 };
 
-
 module.exports.filterEqual = function (filter, queries) {
     return function (collection) {
-        var result = [];
-        var person = collection[i];
-        for (var i = 0; i < collection.length; i++) {
+        return collection.filter(function (person) {
             if (person[filter] === queries) {
-                result.push(person);
+                return true;
             }
-        }
-        return result;
+            return false;
+        });
     };
 };
 
 // Оператор sortBy, отсуртирует их по возрасту (но зачем?)
 module.exports.sortBy = function (filter, type) {
     return function (collection) {
+        var sort = collection.sort(function (a, b) {
+            if (a[filter] >= b[filter]) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
         if (type === 'asc') {
-            return collection.sort(function (a, b) {
-                if (a[filter] >= b[filter]) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            });
+            return sort;
         } else {
-            return collection.sort(function (a, b) {
-                if (b[filter] >= a[filter]) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            });
+            return sort.reverse();
         }
     };
 };
