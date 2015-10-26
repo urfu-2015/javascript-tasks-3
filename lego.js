@@ -25,10 +25,10 @@ module.exports.limit = function (n) {
 module.exports.select = function () {
     var propList = new Set(arguments);
     return function (collection) {
-        var changedCollection = collection.map(function (entry){
+        var changedCollection = collection.map(function (entry) {
             var newEntry = {};
             var entryProps = Object.keys(entry);
-            entryProps.reduce(function (previousProp, currentProp){
+            entryProps.reduce(function (previousProp, currentProp) {
                 if (propList.has(currentProp)) {
                     newEntry[currentProp] = entry[currentProp];
                 }
@@ -42,7 +42,7 @@ module.exports.select = function () {
 module.exports.filterIn = function (property, propValues) {
     propValues = new Set(propValues);
     return function (collection) {
-        var changedCollection = collection.filter(function (entry){
+        var changedCollection = collection.filter(function (entry) {
             var propValue = entry[property];
             if (propValues.has(propValue)) {
                 return true;
@@ -94,7 +94,7 @@ module.exports.sortBy = function (property, order) {
 module.exports.format = function (property, _function) {
     return function (collection) {
         var changedCollection = [].concat(collection);
-        changedCollection.forEach(function (entry){
+        changedCollection.forEach(function (entry) {
             entry[property] = _function(entry[property]);
         });
     return changedCollection;
@@ -104,13 +104,16 @@ module.exports.format = function (property, _function) {
 module.exports.or = function () {
     var funcList = arguments;
     return function(collection) {
-        var changedCollection = [];
+        var changedCollection = new Set();
         for (var i = 0; i < funcList.length; i++) {
             var func = funcList[i];
             var funcResult = func(collection);
-            changedCollection = changedCollection.concat(funcResult);
+            funcResult.forEach(function (entry) {
+                changedCollection.add(entry);
+            });
         }
-        return changedCollection;
+        changedCollection = Array.from(changedCollection);
+        return  changedCollection;
     }
 }
 
