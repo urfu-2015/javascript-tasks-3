@@ -62,13 +62,9 @@ module.exports.filterIn = function (filterKey, filterValue) {
 
 module.exports.filterEqual = function (filterKey, filterValue) {
     return function (collection) {
-        var newCollection = [];
-        collection.reduce(function (previousValue, currentValue) {
-            if (currentValue[filterKey] === filterValue) {
-                newCollection.push(currentValue);
-            }
+        return collection.filter(function (obj) {
+            return (obj[filterKey] === filterValue) ? true : false;
         });
-        return newCollection;
     };
 };
 
