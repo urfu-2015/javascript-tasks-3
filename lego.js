@@ -101,7 +101,7 @@ module.exports.or = function () {
     return function () {
         var filters = [].slice.apply(arguments);
 
-        
+
     }
 }
 
