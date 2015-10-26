@@ -22,13 +22,14 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
+        n = n > 0 ? n : collection.length;
         n = Math.min(n, collection.length);
         var limitCollection = [];
         for (var i = 0; i < n; i++) {
             limitCollection.push(collection[i]);
         };
+        return limitCollection;
     };
-    return limitCollection;
 };
 
 module.exports.select = function () {
@@ -37,11 +38,11 @@ module.exports.select = function () {
         var selectedCollection = [];
         collection.forEach(function (item, i, collection) {
             var newData = {};
-            for (var currentField in item) {
-                if (fields.indexOf(currentField) > -1) {
-                    newData[currentField] = item[currentField];
-                }
-            }
+            fields.forEach(function (field, i, fields) {
+                if (item.hasOwnProperty(field)) {
+                    newData[field] = item[field];
+                };
+            });
             selectedCollection.push(newData);
         });
         return selectedCollection;
@@ -50,11 +51,8 @@ module.exports.select = function () {
 
 module.exports.filterIn = function (field, values) {
     return function (collection) {
-        var filteredCollection = [];
-        collection.forEach(function (item, i, collection) {
-            if (values.indexOf(item[field]) > -1) {
-                filteredCollection.push(item);
-            };
+        var filteredCollection = collection.filter(function (item, i, collection) {
+            return values.indexOf(item[field]) > -1;
         });
         return filteredCollection;
     };
@@ -74,18 +72,18 @@ module.exports.filterEqual = function (field, value) {
 
 module.exports.sortBy = function (property, order) {
     return function (collection) {
+        if (order !== 'asc' || 'desc') {
+            order = 'asc';
+        };
         var sortedCollection = collection.sort(function (first, second) {
             if (first[property] < second[property]) {
-                return -1;
+                return (order == 'asc'? -1 : 1);
             }
             if (first[property] > second[property]) {
-                return 1;
+                return (order == 'asc'? 1 : -1);
             }
             return 0;
         });
-        if (order === 'desc') {
-            return sortedCollection.reverse();
-        }
         return sortedCollection;
     };
 };
@@ -107,8 +105,8 @@ module.exports.format = function (property, convertFunction) {
         return formatedCollection;
     };
 };
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
+
+
 
 // Будет круто, если реализуете операторы:
 // or и and
