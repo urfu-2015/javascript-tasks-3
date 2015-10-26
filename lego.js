@@ -1,27 +1,130 @@
 'use strict';
 
-// Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection /* операторы через запятую */) {
-
+module.exports.query = function (collection) {
+    for (var i = 1; i < arguments.length; i++) {
+        collection = arguments[i](collection);
+    }
+    return collection;
 };
 
-// Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
         var changedCollection = collection.reverse();
-
-        // Возращаем изменённую коллекцию
         return changedCollection;
     };
 };
 
-// Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
-    // Магия
+    return function (collection) {
+        n = n < 0 ? 0 : n;
+        var changedCollection = collection.slice(0, n);
+        return changedCollection;
+    }
 };
 
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
+module.exports.select = function () {
+    var propList = new Set(arguments);
+    return function (collection) {
+        var changedCollection = collection.map(function (entry) {
+            var newEntry = {};
+            var entryProps = Object.keys(entry);
+            entryProps.reduce(function (previousProp, currentProp) {
+                if (propList.has(currentProp)) {
+                    newEntry[currentProp] = entry[currentProp];
+                }
+            }, 0);
+            return newEntry;
+        });
+        return changedCollection;
+    }
+}
 
-// Будет круто, если реализуете операторы:
-// or и and
+module.exports.filterIn = function (property, propValues) {
+    propValues = new Set(propValues);
+    return function (collection) {
+        var changedCollection = collection.filter(function (entry) {
+            var propValue = entry[property];
+            if (propValues.has(propValue)) {
+                return true;
+            }
+            return false;
+        });
+        return changedCollection;
+    }
+}
+
+module.exports.filterEqual = function (property, propValue) {
+    return function (collection) {
+        var changedCollection = collection.filter(function (entry) {
+            if (entry[property] === propValue) {
+                return true;
+            }
+            return false;
+        });
+        return changedCollection;
+    }
+}
+
+module.exports.sortBy = function (property, order) {
+    var compare = function (a, b) {
+        if (order === 'asc') {
+            return a - b;
+        }
+        if (order === 'desc') {
+            return b - a;
+        }
+    }
+    return function (collection) {
+        var changedCollection = [].concat(collection);
+        var isSorted = false;
+        while (!isSorted) {
+            changedCollection.sort(function (a, b) {
+                isSorted = true;
+                var comparison = compare(a[property], b[property]);
+                if (comparison > 0) {
+                    isSorted = false;
+                }
+                return comparison;
+            });
+        }
+    return changedCollection;
+    }
+}
+
+module.exports.format = function (property, _function) {
+    return function (collection) {
+        var changedCollection = [].concat(collection);
+        changedCollection.forEach(function (entry) {
+            entry[property] = _function(entry[property]);
+        });
+    return changedCollection;
+    }
+}
+
+module.exports.or = function () {
+    var funcList = arguments;
+    return function(collection) {
+        var changedCollection = new Set();
+        for (var i = 0; i < funcList.length; i++) {
+            var func = funcList[i];
+            var funcResult = func(collection);
+            funcResult.forEach(function (entry) {
+                changedCollection.add(entry);
+            });
+        }
+        changedCollection = Array.from(changedCollection);
+        return  changedCollection;
+    }
+}
+
+module.exports.and = function () {
+    var funcList = arguments;
+    return function (collection) {
+        var changedCollection = [].concat(collection);
+        for (var i = 0; i < funcList.length; i++) {
+            var func = funcList[i];
+            changedCollection = func(changedCollection);
+        }
+        return changedCollection;
+    }
+}
