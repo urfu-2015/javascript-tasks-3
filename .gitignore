@@ -3,3 +3,5 @@
 .idea
 node_modules
 npm-debug.log
+es5
+gulpfile.js
