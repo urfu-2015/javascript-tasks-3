@@ -9,11 +9,14 @@ module.exports.query = function (collection) {
 
 module.exports.reverse = function () {
     return function (collection) {
-        return collection.collection.reverse();
+        return collection.reverse();
     };
 };
 module.exports.limit = function (n) {
     return function (collection) {
+        if (n < 0) {
+            return collection;
+        }
         return collection.splice(0, n);
     };
 };
@@ -23,8 +26,11 @@ module.exports.select = function () {
         return collection.map(function (element) {
             var result = {};
             for (var i = 0; i < selectors.length; i++) {
-                result[selectors[i]] = element[selectors[i]];
+                if (typeof element[selectors[i]] != 'undefined'){
+                    result[selectors[i]] = element[selectors[i]];
+                }
             }
+            console.log(result);
             return result;
         });
     };
@@ -60,7 +66,7 @@ module.exports.filterEqual = function (selector, value) {
                 collection.splice(i, 1);
             }
         }
-        console.log(collection);
+        return collection;
     };
 };
 module.exports.sortBy = function (selector, order) {
@@ -82,7 +88,6 @@ module.exports.format = function (selector, func) {
         for (var i = 0; i < collection.length; i++) {
             collection[i][selector] = func(collection[i][selector]);
         }
-        console.log(collection);
         return collection;
     };
 };
