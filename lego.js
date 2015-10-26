@@ -19,17 +19,16 @@ module.exports.reverse = function () {
 };
 
 module.exports.select = function () {
-    var fields = [];
-    for (var i = 0; i < arguments.length; i++) {
-        fields[i] = arguments[i];
-    }
+    var fields = [].slice.call(arguments);
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
             var changedRecord = {};
             var record = collection[i];
             for (var j = 0; j < fields.length; j++) {
-                changedRecord[fields[j]] = record[fields[j]];
+                if (record[fields[j]] !== undefined) {
+                    changedRecord[fields[j]] = record[fields[j]];
+                }
             }
             changedCollection[i] = changedRecord;
         }
@@ -41,14 +40,7 @@ module.exports.filterIn = function (field, values) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            var isMatching = false;
-            for (var j = 0; j < values.length; j++) {
-                if (collection[i][field] === values[j]) {
-                    isMatching = true;
-                    break;
-                }
-            }
-            if (isMatching) {
+            if (values.indexOf(collection[i][field]) !== -1) {
                 changedCollection.push(copyRecord(collection[i]));
             }
         }
@@ -58,9 +50,7 @@ module.exports.filterIn = function (field, values) {
 
 module.exports.filterEqual = function (field, value) {
     return function (collection) {
-        var values = [];
-        values.push(value);
-        var filterEq = module.exports.filterIn(field, values);
+        var filterEq = module.exports.filterIn(field, [value]);
         return filterEq(collection);
     };
 };
@@ -87,14 +77,10 @@ module.exports.format = function (field, modifyingFunction) {
 
 module.exports.limit = function (n) {
     return function (collection) {
-        var changedCollection = [];
-        for (var i = 0; i < n; i++) {
-            if (collection[i] === undefined) {
-                break;
-            }
-            changedCollection[i] = copyRecord(collection[i]);
+        if (n > 0) {
+            return copyCollection(collection.slice(0, n));
         }
-        return changedCollection;
+        return collection;
     };
 };
 
@@ -117,23 +103,28 @@ function copyCollection(collection) {
 
 function compareRecords(field, order) {
     return function (a, b) {
-        var sign = (order === 'asc') ? 1 : -1;
         if (a[field] < b[field]) {
-            return -1 * sign;
+            return order === 'asc' ? -1 : 1;
         }
         if (a[field] > b[field]) {
-            return 1 * sign;
+            return order === 'asc' ? 1 : -1;
         }
         return 0;
     };
 }
 
 module.exports.or = function (query1, query2) {
+    var queries = [].slice.call(arguments);
     return function (collection) {
         var collection1 = copyCollection(collection);
         collection1 = query1(collection1);
-        var collection2 = copyCollection(collection);
-        collection2 = query2(collection2);
+        if (queries.length > 2) {
+            queries.shift();
+            var collection2 = (module.exports.or.apply(this, queries))(collection);
+        } else {
+            var collection2 = copyCollection(collection);
+            collection2 = query2(collection2);
+        }
         var changedCollection = collection1;
         for (var i = 0; i < collection2.length; i++) {
             if (!recordInCollection(collection2[i], changedCollection)) {
@@ -145,11 +136,17 @@ module.exports.or = function (query1, query2) {
 };
 
 module.exports.and = function (query1, query2) {
+    var queries = [].slice.call(arguments);
     return function (collection) {
         var collection1 = copyCollection(collection);
         collection1 = query1(collection1);
-        var collection2 = copyCollection(collection);
-        collection2 = query2(collection2);
+        if (queries.length > 2) {
+            queries.shift();
+            var collection2 = (module.exports.and.apply(this, queries))(collection);
+        } else {
+            var collection2 = copyCollection(collection);
+            collection2 = query2(collection2);
+        }
         var changedCollection = [];
         for (var i = 0; i < collection2.length; i++) {
             if (recordInCollection(collection2[i], collection1)) {
@@ -176,11 +173,6 @@ function recordsEqual(record1, record2) {
         return false;
     }
     for (var i = 0; i < keys1.length; i++) {
-        if (keys1[i] !== keys2[i]) {
-            return false;
-        }
-    }
-    for (i = 0; i < keys1.length; i++) {
         if (record1[keys1[i]] !== record2[keys1[i]]) {
             return false;
         }
