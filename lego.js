@@ -12,43 +12,38 @@ module.exports.or = or;
 module.exports.reverse = reverse;
 
 function query(collection) {
-    var myCollection = JSON.stringify(collection);
-    myCollection = JSON.parse(myCollection);
+    var cloneCollection = deepClone(collection);
     var args = [].slice.call(arguments, 1);
-    args.unshift(myCollection);
 
-    myCollection = args.reduce(function (result, current) {
+    return args.reduce(function (result, current) {
         return current(result);
-    });
-
-    return myCollection;
+    }, cloneCollection);
 }
 
 function select() {
     var attrNames = [].slice.call(arguments);
-    return function(collection) {
+    return function (collection) {
         collection.forEach(function (item) {
             for (var prop in item) {
-                if (attrNames.every(elem => elem !== prop)) {
+                if (item.hasOwnProperty(prop) && attrNames.indexOf(prop) < 0) {
                     delete item[prop];
                 }
             }
         });
-
         return collection;
     };
 }
 
 function filterIn(attrName, attrValues) {
-    return function(collection) {
+    return function (collection) {
         return collection.filter(function (item) {
-            return attrValues.some(elem => elem === item[attrName]);
+            return attrValues.indexOf(item[attrName]) !== -1;
         });
     };
 }
 
 function filterEqual(attrName, attrValue) {
-    return function(collection) {
+    return function (collection) {
         return collection.filter(function (item) {
             return item[attrName] === attrValue;
         });
@@ -56,16 +51,17 @@ function filterEqual(attrName, attrValue) {
 }
 
 function sortBy(attrName, direct) {
-    return function(collection) {
+    return function (collection) {
+        direct = (direct === 'asc') ? 1 : -1;
         collection.sort(function (a, b) {
-            return a[attrName] - b[attrName];
+            return a[attrName] > b[attrName] ? direct : -direct;
         });
-        return direct === 'desc' ? collection.reverse() : collection;
+        return collection;
     };
 }
 
 function format(attrName, func) {
-    return function(collection) {
+    return function (collection) {
         collection.forEach(function (item) {
             item[attrName] = func(item[attrName]);
         });
@@ -75,7 +71,7 @@ function format(attrName, func) {
 }
 
 function limit(n) {
-    return function(collection) {
+    return function (collection) {
         return collection.slice(0, n);
     };
 }
@@ -83,23 +79,31 @@ function limit(n) {
 function and() {
     var args = [].slice.call(arguments);
 
-    return function(collection) {
-        args.unshift(collection);
+    return function (collection) {
         return args.reduce(function (result, current) {
             return current(result);
-        });
+        }, collection);
     };
 }
 
 function or() {
     var args = [].slice.call(arguments);
 
-    return function(collection) {
+    return function (collection) {
         var result = [];
-        args.some(function (item) {
-            result = item(collection);
-            return result.length ? true : false;
+        result = args.reduce(function (res, current) {
+            return res.concat(current(collection));
+        }, result);
+
+        var deleteIndex = 0;
+
+        // delete repeated objects
+        result.forEach(function (item, i) {
+            while ((deleteIndex = result.indexOf(item, i + 1)) > 0) {
+                result.splice(deleteIndex, 1);
+            }
         });
+
         return result;
     };
 }
@@ -108,4 +112,8 @@ function reverse() {
     return function (collection) {
         return collection.reverse();
     };
+}
+
+function deepClone(collection) {
+    return JSON.parse(JSON.stringify(collection));
 }
