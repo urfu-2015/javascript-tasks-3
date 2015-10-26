@@ -15,7 +15,7 @@ module.exports.query = function (collection) {
  */
 module.exports.reverse = function () {
     return function (collection) {
-        return collection.reverse();
+        return collection.concat([]).reverse();
     };
 };
 
@@ -57,10 +57,7 @@ module.exports.select = function() {
 module.exports.filterIn = function(property, values) {
     return function (collection) {
         return collection.filter(function (element) {
-            for (var i in values)
-                if (values[i] === element[property])
-                    return true;
-            return false;
+            return values.indexOf(element[property]) >= 0;
         });
     }
 };
@@ -71,9 +68,7 @@ module.exports.filterIn = function(property, values) {
 module.exports.filterEqual = function(property, value) {
     return function (collection) {
         return collection.filter(function (element) {
-            if (value === element[property])
-                return true;
-            return false;
+            return value === element[property];
         });
     }
 };
@@ -81,31 +76,57 @@ module.exports.filterEqual = function(property, value) {
 /*
  Оператор sortBy, который сортирует O_O
  */
-module.exports.sortBy = function(property, type) {
+module.exports.sortBy = function(property, order) {
     return function (collection) {
-        var modify = type === 'asc' ? 1 : -1;
-        // Обычная сортировка в зависимости от type
-        return collection.sort(function (a, b) {
+        order = order === 'asc' ? 1 : -1;
+        return collection.concat([]).sort(function (a, b) {
             if (a[property] > b[property])
-                return modify;
+                return order;
             if (a[property] < b[property])
-                return modify * (-1);
+                return -order;
             return 0;
         });
     }
 };
 
 /*
- Оператор format, который формирует -_-
+ Оператор format, который форматирует элементы согласно format
  */
 module.exports.format = function(property, format) {
     return function (collection) {
-        collection.forEach(function (element) {
+        collection.map(function (element) {
             element[property] = format(element[property]);
+            return element;
         });
         return collection;
     }
 };
 
-// Будет круто, если реализуете операторы:
-// or и and
+/*
+ Будет круто, если реализуете операторы: or и and
+ */
+module.exports.or = function() {
+    var functions = [].slice.call(arguments);
+    return function (collection) {
+        var result = [];
+        functions.forEach(function (element) {
+            var tempCollection = element(collection);
+            tempCollection.forEach(function (element) {
+                if (result.indexOf(element) < 0) {
+                    result.push(element);
+                }
+            });
+        });
+        return result;
+    }
+};
+
+module.exports.and = function() {
+    var functions = [].slice.call(arguments);
+    return function (collection) {
+        functions.forEach(function (elemnet) {
+            collection = elemnet(collection);
+        });
+        return collection;
+    }
+};
