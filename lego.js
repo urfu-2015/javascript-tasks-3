@@ -89,7 +89,9 @@ module.exports.select = function () {
     return selectFields;
 };
 
-module.exports.filterIn = function (field, values) {
+
+module.exports.filterIn = filterIn;
+function filterIn(field, values) {
     isPhoneBookField(field);
     var filter = {
         field: field,
@@ -97,12 +99,19 @@ module.exports.filterIn = function (field, values) {
     };
 
     var filterCollection = function (collection) {
-        for (var i = 0, l = collection.length; i < l; i++) {
+        return collection.map( function(element) {
+            if (filter.values.indexOf(element[filter.field]) === -1) {
+                return element = null;
+            } else {
+                return element;
+            }
+        });
+      /*   for (var i = 0, l = collection.length; i < l; i++) {
             if (filter && filter.values.indexOf(collection[i][filter.field]) === -1) {
                 collection[i] = null;
             }
-        }
-        return collection;
+        } 
+        return newCollection;*/
     };
     return filterCollection;
 };
@@ -162,8 +171,7 @@ module.exports.format = function (field, func) {
 };
 
 module.exports.filterEqual = function (field, value) {
-    // без module.exports ошибка 'filterIn is not defined'
-    return module.exports.filterIn(field, [value]);
+    return filterIn(field, [value]);
 };
 
 module.exports.or = function () {
