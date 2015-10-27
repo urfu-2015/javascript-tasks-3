@@ -33,7 +33,8 @@ module.exports.limit = function (n) {
 // Будет круто, если реализуете операторы:
 // or и and
 module.exports.select = function() {
-    var args = [].slice.call(arguments);
+    // var args = [].slice.call(arguments);
+    var args = Array.from(arguments);
     return function (collection) {
         return collection.map(function (contact) {
             for (var key in contact) {
