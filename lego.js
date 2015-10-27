@@ -103,7 +103,7 @@ var filterIn = function (field, valid) {
         var newCollection = [];
         for (var i = 0; i < collection.length; i++) {
             for (var e in collection[i]) {
-                if (e == field && valid.indexOf(collection[i][e]) != -1) {
+                if (e === field && valid.indexOf(collection[i][e]) != -1) {
                     newCollection.push(collection[i]);
                 }
             }
@@ -118,7 +118,7 @@ module.exports.filterEqual = function (field, value) {
     return filterIn(field, [value]);
 };
 
-function sortBy(field) {
+function sortFunction(field) {
     return function (a, b) {
         if (a[field] > b[field]) {
             return 1;
@@ -132,7 +132,7 @@ function sortBy(field) {
 
 module.exports.sortBy = function (field, rule) {
     return function (collection) {
-        var newCollection = collection.sort(sortBy(field));
+        var newCollection = collection.sort(sortFunction(field));
         if (rule === 'desc') {
             return newCollection.reverse();
         };
@@ -140,12 +140,12 @@ module.exports.sortBy = function (field, rule) {
     };
 };
 
-module.exports.format = function (field, fun) {
+module.exports.format = function (field, formatFunction) {
     return function (collection) {
         for (var i = 0; i < collection.length; i++) {
             for (var e in collection[i]) {
                 if (e === field) {
-                    collection[i][e] = fun(collection[i][e]);
+                    collection[i][e] = formatFunction(collection[i][e]);
                 }
             }
         };
