@@ -1,7 +1,7 @@
 'use strict';
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
-	var phoneBook = collection;
+	var phoneBook = Object.assign([], collection);
 	for (var i = 1; i < arguments.length; i++) {
 		phoneBook = arguments[i](phoneBook);
 	}
@@ -20,13 +20,13 @@ module.exports.reverse = function () {
 };
 
 module.exports.select = function () {
-	var arg = [].slice.apply(arguments);
+	var args = [].slice.apply(arguments);
 	return function (collection) {
 		var selectedPhoneBook = [];
 		for (var i = 0; i < collection.length; i++) {
 			selectedPhoneBook[i] = {};
-			for(var item in arg) {
-				selectedPhoneBook[i][arg[item]] = collection[i][arg[item]];
+			for(var item of args) {
+				selectedPhoneBook[i][item] = collection[i][item];
 			}
 		}
 		return selectedPhoneBook;
@@ -37,8 +37,8 @@ module.exports.filterIn = function (item, filter) {
 	return function (collection) {
 		var filtredPhoneBook = [];
 		for (var i = 0; i < collection.length; i++) {
-			for(var e in filter) {
-				if (collection[i][item] === filter[e]) {
+			for(var e of filter) {
+				if (collection[i][item] === e) {
 					filtredPhoneBook.push(collection[i]);
 					break;
 				}
@@ -82,10 +82,10 @@ module.exports.sortBy = function (item, isReverse) {
 }
 
 
-module.exports.format = function (item, func) {
+module.exports.format = function (item, handler) {
 	return function (collection) {
 		for (var i = 0; i < collection.length; i++) {
-			collection[i][item] = func(collection[i][item]);
+			collection[i][item] = handler(collection[i][item]);
 		}
 		return collection;
 	}
@@ -94,10 +94,12 @@ module.exports.format = function (item, func) {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
 	return function (collection) {
-		if (n < collection.length) {
+		if (n < collection.length && n >= 0) {
 			return collection.slice(0, n);
 		}
-		return collection;
+		else {
+			throw RangeError('Parameter must be non-negative');
+		}
 	}
 	// Магия
 };
