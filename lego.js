@@ -97,6 +97,9 @@ module.exports.limit = function (n) {
 		if (n < collection.length && n >= 0) {
 			return collection.slice(0, n);
 		}
+		else if (n >= collection.length) {
+		    return collection;
+		}
 		else {
 			throw RangeError('Parameter must be non-negative');
 		}
