@@ -30,8 +30,6 @@ var result = lego.query(
     lego.limit(10)
 );
 
-console.log(result);
-
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
 
 var result = lego.query(

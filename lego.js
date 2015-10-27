@@ -33,14 +33,13 @@ module.exports.select = function () {
     return function (collection) {
         var filterCollection = [];
 
-        for (var k in collection) {
-            filterCollection[k] = {};
-            for (var i in keys) {
-                var key = keys[i];
-                if (key in collection[k])
-                    filterCollection[k][key] = collection[k][key];
-            }
-        }
+        collection.forEach(function(item, index) {
+            filterCollection[index] = {};
+            keys.forEach(function(key) {
+                if (key in item)
+                    filterCollection[index][key] = item[key];
+            })
+        });
 
         return filterCollection;
     }
@@ -48,15 +47,11 @@ module.exports.select = function () {
 
 module.exports.filterIn = function (keyForFilter, valuesForFilter) {
     return function (collection) {
-        var filterCollection = [];
-
-        for (var i in collection) {
-            for (var k in valuesForFilter) {
-                var value = valuesForFilter[k];
-                if (collection[i][keyForFilter] == value)
-                    filterCollection.push(collection[i]);
-            }
-        }
+        var filterCollection = collection.filter(function(item) {
+            return valuesForFilter.some(function(value) {
+                return item[keyForFilter] == value;
+            });
+        });
 
         return filterCollection;
     }
@@ -65,8 +60,8 @@ module.exports.filterIn = function (keyForFilter, valuesForFilter) {
 module.exports.sortBy = function (keyForSort, order) {
     return function (collection) {
         function compare(a, b) {
-            if (parseInt(a[keyForSort]) > parseInt(b[keyForSort])) return 1;
-            if (parseInt(a[keyForSort]) < parseInt(b[keyForSort])) return -1;
+            if (a[keyForSort] > b[keyForSort]) return 1;
+            if (a[keyForSort] < b[keyForSort]) return -1;
         }
 
         var sortedCollection = collection.sort(compare);
@@ -76,8 +71,8 @@ module.exports.sortBy = function (keyForSort, order) {
 
 module.exports.format = function (key, func) {
     return function (collection) {
-        for (var i in collection) {
-               collection[i][key] = func(collection[i][key]);
+        for (var item of collection) {
+               item[key] = func(item[key]);
         }
         return collection;
     }
@@ -85,11 +80,10 @@ module.exports.format = function (key, func) {
 
 module.exports.filterEqual = function (key, expectedValue) {
     return function(collection) {
-        var filterCollection = [];
-        for (var i in collection) {
-            if (collection[i][key] == expectedValue)
-                filterCollection.push(collection[i]);
-        }
+        var filterCollection = collection.filter(function(item) {
+            return item[key] == expectedValue;
+        });
+
         return filterCollection;
     }
 }
