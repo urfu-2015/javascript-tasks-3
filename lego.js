@@ -3,9 +3,9 @@
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) {
 	var filteredCollection = collection;
-	for (var i = 1; i < arguments.length; i++) {
-		filteredCollection = arguments[i](filteredCollection);
-	};
+	arguments.forEach(function (argument) {
+		argument(filteredCollection);
+	})
 	return filteredCollection;
 };
 
@@ -26,7 +26,6 @@ module.exports.select = function () {
 	var keys = [].slice.apply(arguments);
 	return function (collection) {
 		var filteredCollection= [];
-
 		for(var k in collection){
 			filteredCollection[k] = [];
 			keys.forEach(function(key){
@@ -75,11 +74,8 @@ module.exports.format = function (field, func) {
 
 module.exports.filterEqual = function (key, expectedValue) {
 	return function(collection){
-		var filteredCollection = [];
-		collection.forEach(function(entry){
-			if(entry[key] == expectedValue){
-				filteredCollection.push(entry);
-			}
+		var filteredCollection = collection.filter(function (entry) {
+			return entry[key] == expectedValue;
 		});
 		return filteredCollection;
 	};
