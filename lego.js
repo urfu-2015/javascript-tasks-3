@@ -2,11 +2,10 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (phoneBook) {
-
     for (var functions = 1; functions < arguments.length; functions++) {
         phoneBook = arguments[functions](phoneBook);
     }
-    return (phoneBook);
+    return phoneBook;
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -19,7 +18,7 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (phoneBook) {
-        var newPhoneBook = phoneBook.slice(0, Math.min(n, phoneBook.length));
+        var newPhoneBook = phoneBook.slice(0, n);
         return newPhoneBook;
     };
 };
@@ -28,8 +27,8 @@ module.exports.select = function () {
     var records = [].slice.call(arguments);
     return function (phoneBook) {
         var newPhoneBook = [];
-        for (var contact = 0; contact < phoneBook.length; contact++) {
-            var record = phoneBook[contact];
+        phoneBook.map(function (contact) {
+            var record = contact;
             var newRecord = {};
             var keys = Object.keys(record);
             keys.forEach(function (key) {
@@ -38,7 +37,7 @@ module.exports.select = function () {
                 }
             });
             newPhoneBook.push(newRecord);
-        }
+        });
         return newPhoneBook;
     };
 };
@@ -57,17 +56,23 @@ module.exports.filterIn = function (record, criteria) {
     };
 };
 
+
 module.exports.sortBy = function (record, criterion) {
     return function (phoneBook) {
-        if (criterion == 'asc') {
+        function sorted(phoneBook) {
             return phoneBook.sort(function (a, b) {
-                return a[record] - b[record];
-            });
-        } else {
-            return phoneBook.sort.reverse(function (a, b) {
-                return a[record] - b[record];
+                if (a[record] > b[record]) {
+                    return 1;
+                } else {
+                    return -1;
+                }
             });
         }
+        if (criterion == 'asc') {
+            return sorted(phoneBook);
+        } else {
+            return sorted(phoneBook).reverse;
+        };
     };
 };
 
