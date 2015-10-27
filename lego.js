@@ -40,18 +40,22 @@ module.exports.limit = function (n) {
 module.exports.select = function () {
     var fields = [].slice.call(arguments);
     return function (collection) {
-        var changedCollection = collection.filter(function (item) {
-            for (var i = 0; i < fields.length; i++) {
-                if (Object.keys(item).indexOf(fields[i]) === -1) {
-                    return false;
-                }
-            }
-            return true;
-        });
-        return changedCollection.map(function (item) {
+
+        //var changedCollection = collection.filter(function (item) {
+        //    for (var i = 0; i < fields.length; i++) {
+        //        if (Object.keys(item).indexOf(fields[i]) === -1) {
+        //            return false;
+        //        }
+        //    }
+        //    return true;
+        //});
+
+        return collection.map(function (item) {
             var newItem = {};
             fields.forEach(function (field) {
-                newItem[field] = item[field];
+                if ((item[field])) {
+                    newItem[field] = item[field];
+                }
             });
             return newItem;
         });
@@ -94,7 +98,9 @@ module.exports.sortBy = function (field, option) {
 module.exports.format = function (field, func) {
     return function (collection) {
         return collection.map(function (item) {
-            item[field] = func(item[field]);
+            if (item[field]) {
+                item[field] = func(item[field]);
+            }
             return item;
         });
     };
