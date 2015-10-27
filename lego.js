@@ -26,19 +26,19 @@ module.exports.query = function (collection,
                                 sortCollection,
                                 formatCollection,
                                 limitCollection) {
-    var qyeryRes = [];
+    var queryRes = [];
 
     if (isFunction(selectFields)) {
-        qyeryRes = selectFields(collection);
+        queryRes = selectFields(collection);
     }
 
     if (isFunction(filterCollection)) {
-        qyeryRes = Array.from(filterCollection(qyeryRes));
+        queryRes = Array.from(filterCollection(queryRes));
         var i = 0;
-        var l = qyeryRes.length;
+        var l = queryRes.length;
         while (i < l) {
-            if (qyeryRes[i] === null) {
-                qyeryRes.splice(i, 1);
+            if (queryRes[i] === null) {
+                queryRes.splice(i, 1);
             } else {
                 i++;
             }
@@ -46,18 +46,18 @@ module.exports.query = function (collection,
     }
 
     if (isFunction(sortCollection)) {
-        qyeryRes = Array.from(sortCollection(qyeryRes));
+        queryRes = Array.from(sortCollection(queryRes));
     }
 
     if (isFunction(formatCollection)) {
-        qyeryRes = Array.from(formatCollection(qyeryRes));
+        queryRes = Array.from(formatCollection(queryRes));
     }
 
     if (isFunction(limitCollection)) {
-        qyeryRes = Array.from(limitCollection(qyeryRes));
+        queryRes = Array.from(limitCollection(queryRes));
     }
 
-    return qyeryRes;
+    return queryRes;
 };
 
 module.exports.select = function () {
@@ -125,12 +125,8 @@ module.exports.sortBy = function (field, type) {
         for (var i = 0, l = collection.length; i < l; i++) {
             for (var j = i + 1, l = collection.length; j < l; j++) {
                 if (collection[i][sorter.field] > collection[j][sorter.field] &&
-                    sorter.type === sortTypes.asc) {
-                    buferRecord = Object.assign({}, collection[i]);
-                    collection[i] = Object.assign({}, collection[j]);
-                    collection[j] = Object.assign({}, buferRecord);
-                    buferRecord = {};
-                } else if (collection[i][sorter.field] < collection[j][sorter.field] &&
+                    sorter.type === sortTypes.asc ||
+                    collection[i][sorter.field] < collection[j][sorter.field] &&
                         sorter.type === sortTypes.desc) {
                     buferRecord = Object.assign({}, collection[i]);
                     collection[i] = Object.assign({}, collection[j]);
