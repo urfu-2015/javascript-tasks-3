@@ -2,15 +2,14 @@
 
 /**
  * Метод, который выполняет операции над коллекцией один за другим
- * @param collection
- * @returns {*} changedCollection
+ * @param {Object[]} collection
+ * @param {...Function}
+ * @returns {Object[]} changedCollection
  */
 module.exports.query = function (collection /* операторы через запятую */) {
     var changedCollection = collection;
-    for (var funcOp in arguments) {
-        if (funcOp != '0') {
-            changedCollection = arguments[funcOp](changedCollection);
-        }
+    for (var i = 1; i < arguments.length; i++) {
+        changedCollection = arguments[i](changedCollection);
     }
     return changedCollection;
 };
@@ -57,7 +56,7 @@ module.exports.select = function () {
             changedCollection.push({});
             for (var key in collection[elem]) {
                 // Копируем только нужные ключи
-                if (fieldsToChoose.indexOf(key) != -1) {
+                if (fieldsToChoose.indexOf(key) !== -1) {
                     changedCollection[elem][key] = collection[elem][key];
                 }
             }
@@ -71,22 +70,25 @@ module.exports.select = function () {
  * Оператор filterIn делает выборку по ключам определенных полей
  * @returns {Function}
  */
-module.exports.filterIn = function () {
-    var fieldToFilterBy = arguments[0];
-    var valuesToFilterBy = arguments[1];
+module.exports.filterIn = function (fieldToFilterBy, valuesToFilterBy) {
     return function (collection) {
         var changedCollection = [];
         for (var elem = 0; elem < collection.length; ++elem) {
-            for (var key in collection[elem]) {
-                if (valuesToFilterBy.indexOf(collection[elem][fieldToFilterBy]) != -1) {
-                    changedCollection.push(collection[elem]);
-                }
+            if (valuesToFilterBy.indexOf(collection[elem][fieldToFilterBy]) !== -1) {
+                changedCollection.push(collection[elem]);
             }
         }
         // Возращаем изменённую коллекцию
         return changedCollection;
     };
 };
+
+///**
+// * Функция - компаратор для сортировки
+// * @param a - первый человек
+// * @param b - второй человек
+// * @returns {number}
+// */
 
 /**
  * Сортирует по возрастанию или убыванию
@@ -95,15 +97,15 @@ module.exports.filterIn = function () {
  * @returns {Function}
  */
 module.exports.sortBy = function (key, order) {
-    return function (collection) {
-        function comparePeople(a, b) {
-            if (parseInt(a[key]) > parseInt(b[key])) {
-                return 1;
-            }
-            if (parseInt(a[key]) < parseInt(b[key])) {
-                return -1;
-            }
+    function comparePeople(a, b) {
+        if (parseInt(a[key], 10) > parseInt(b[key], 10)) {
+            return 1;
         }
+        if (parseInt(a[key], 10) < parseInt(b[key], 10)) {
+            return -1;
+        }
+    }
+    return function (collection) {
         var changedCollection = collection.sort(comparePeople);
         if (order === 'desc') {
             changedCollection.reverse();
@@ -114,17 +116,17 @@ module.exports.sortBy = function (key, order) {
 
 /**
  * Изменяет значение по выбранному ключу
- * @param key
- * @param showFn
+ * @param {string} key
+ * @param {Function} formatter
  * @returns {Function}
  */
-module.exports.format = function (key, showFn) {
+module.exports.format = function (key, formatter) {
     return function (collection) {
         var changedCollection = [];
         for (var elem = 0; elem < collection.length; ++elem) {
-            var changedMan = collection[elem];
-            changedMan[key] = showFn(collection[elem][key]);
-            changedCollection.push(changedMan);
+            var changedMen = collection[elem];
+            changedMen[key] = formatter(collection[elem][key]);
+            changedCollection.push(changedMen);
         }
         // Возращаем изменённую коллекцию
         return changedCollection;
@@ -133,8 +135,8 @@ module.exports.format = function (key, showFn) {
 
 /**
  * Выбирает только заданные значения по заданным полям
- * @param key
- * @param expectedVal
+ * @param {string} key
+ * @param {string} expectedVal
  * @returns {Function}
  */
 module.exports.filterEqual = function (key, expectedVal) {
