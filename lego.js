@@ -1,11 +1,147 @@
 'use strict';
 
 // Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection /* операторы через запятую */) {
+module.exports.query = function (collection) 
+{
+	var i;
+	var changedCollection = collection;
+	for (i = 1; i < arguments.length; i++)
+	{
+		arguments[i](changedCollection);
+	}
+	return changedCollection;
 
 };
 
-// Оператор reverse, который переворачивает коллекцию
+module.exports.select = function () {
+	var whatNeed = [false, false, false, false, false, false];
+	var properties = ['age', 'gender', 'name', 'email', 'phone','favoriteFruit'];
+	for (var i = 0; i < arguments.length; i++)
+	{	
+		for (var j = 0; j < 6; j++)
+			{
+				if (arguments[i] == properties[j])
+				{
+					whatNeed[j] = true;
+				}
+			}
+	}
+	return function(collection){
+		for (var i = 0; i < collection.length; i++)
+		{
+			for (var j = 0; j < whatNeed.length; j++)
+			{
+				if (!whatNeed[j])
+				{
+						delete collection[i][properties[j]];
+				}
+			}
+		}
+		return collection;
+		};
+};
+
+//нихт арбайтен
+module.exports.filterEqual = function(){
+	var prop = arguments[0];
+	var wish = arguments[1];
+	var changedCollection = [];
+	
+	return function(collection){	
+		for(var i = 0; i < collection.length; i++){
+			if (collection[i][prop] == wish)
+			{
+				changedCollection.push(collection[i]);
+			}
+		}
+	return changedCollection;
+	};
+};
+
+
+module.exports.filterIn = function () {
+	var prop = arguments[0];
+	var fruits = arguments[1];
+	var wishList = [];
+	
+	return function(collection)
+	{
+		for (var i = 0; i < fruits.length; i++){
+			for (var j = 0; j < collection.length; j++){
+					if (collection[j] != null)
+					{
+					if (fruits[i] == collection[j][prop])
+					{
+						wishList[j] = collection[j];
+					}
+					}
+				}
+			}
+		var count = 0;
+		while(count < wishList.length){
+			if (collection[count] != wishList[count])
+			{
+				collection.splice(count,1);
+				wishList.splice(count,1);
+			}
+			else
+			{
+				count++;
+			}
+		}
+	return collection;
+	};
+};
+
+module.exports.sortBy = function () {
+ var sort = arguments[0];
+ var type = arguments[1];
+ 
+	return function(collection){
+	if (type == 'asc'){
+	for (var i = 0; i < collection.length; i++){
+			for (var j = 0; j < collection.length; j++){
+				if (collection[i][sort] < collection[j][sort]){
+					var helpfulValue = collection[j];
+					collection[j] =collection[i];
+					collection[i] = helpfulValue;
+				}
+			}
+		}	
+	}
+	else if (type == 'desc'){
+	for (var i = 0; i < collection.length; i++){
+			for (var j = 0; j < collection.length; j++){
+				if (collection[i][sort] > collection[j][sort]){
+					var helpfulValue = collection[j];
+					collection[j] =collection[i];
+					collection[i] = helpfulValue;
+				}
+			}
+		}	
+			return collection;
+	}
+	};
+};
+module.exports.format = function () {
+	var paramOfSort = arguments[0];
+	var func = arguments[1];
+	return function(collection){
+		for (var i = 0; i < collection.length; i++){
+			collection[i][paramOfSort] = func(collection[i][paramOfSort]);
+		}
+		return collection;
+	};
+    // Магия
+};
+
+
+// Вам необходимо реализовать остальные операторы:
+// select, filterIn, filterEqual, sortBy, format, limit
+
+// Будет круто, если реализуете операторы:
+// or и and
+
 module.exports.reverse = function () {
     return function (collection) {
         var changedCollection = collection.reverse();
@@ -15,13 +151,11 @@ module.exports.reverse = function () {
     };
 };
 
-// Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     // Магия
+		return function (collection) { 
+		collection.splice(n, collection.length); 
+		return collection; 
+	};
 };
 
-// Вам необходимо реализовать остальные операторы:
-// select, filterIn, filterEqual, sortBy, format, limit
-
-// Будет круто, если реализуете операторы:
-// or и and
