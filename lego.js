@@ -139,9 +139,6 @@ module.exports.format = function () {
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
 
-// Будет круто, если реализуете операторы:
-// or и and
-
 module.exports.reverse = function () {
     return function (collection) {
         var changedCollection = collection.reverse();
@@ -152,7 +149,6 @@ module.exports.reverse = function () {
 };
 
 module.exports.limit = function (n) {
-    // Магия
 		return function (collection) { 
 		collection.splice(n, collection.length); 
 		return collection; 
