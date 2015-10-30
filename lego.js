@@ -68,7 +68,7 @@ module.exports.sortBy = function (field, sortType) {
             }
             return 0;
         };
-        var sortedCollection = collection;
+        var sortedCollection = collection.slice();
         sortedCollection.sort(sortFunction);
         if (sortType === 'desc') {
             sortedCollection.reverse();
