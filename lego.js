@@ -45,13 +45,13 @@ module.exports.select = function () {
 /** Оператор filterIn, который сортирует по какому-то ключу и значениям
  * @return {function}
  */
-module.exports.filterIn = function (keyForFilter, exceptedValues) {
+module.exports.filterIn = function (key, exceptedValues) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
             for (var j = 0; j < exceptedValues.length; j++) {
-                if (keyForFilter in collection[i]) {
-                    if (collection[i][keyForFilter].indexOf(exceptedValues[j]) != -1) {
+                if (key in collection[i]) {
+                    if (collection[i][key].indexOf(exceptedValues[j]) != -1) {
                         changedCollection.push(collection[i]);
                         break;
                     }
@@ -67,11 +67,11 @@ module.exports.filterIn = function (keyForFilter, exceptedValues) {
 /** Оператор filterEqual, который сортирует по какому-то ключу и значению
  * @return {function}
  */
-module.exports.filterEqual = function (keyForFilter, exceptedValue) {
+module.exports.filterEqual = function (key, exceptedValue) {
     return function (collection) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            if (collection[i][keyForFilter] === exceptedValue) {
+            if (collection[i][key] === exceptedValue) {
                 changedCollection.push(collection[i]);
             }
         }
@@ -83,13 +83,13 @@ module.exports.filterEqual = function (keyForFilter, exceptedValue) {
 /** Оператор sortBy, который сортирует по какому-то ключу и значению
  * @return {function}
  */
-module.exports.sortBy = function (keyForSort, typeOfSort) {
+module.exports.sortBy = function (key, typeOfSort) {
     return function (collection) {
         function comparePeople(a, b) {
-            if (a[keyForSort] > b[keyForSort]) {
+            if (a[key] > b[key]) {
                 return 1;
             }
-            if (a[keyForSort] < b[keyForSort]) {
+            if (a[key] < b[key]) {
                 return -1;
             }
             return 0;
