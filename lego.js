@@ -1,8 +1,12 @@
 'use strict';
 
 // Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection /* операторы через запятую */) {
-
+module.exports.query = function (collection) {
+	var filterCollection = collection;
+	for (var i = 1; i < arguments.length; i++) {
+		filterCollection = arguments[i](filterCollection);
+	};
+	return filterCollection;
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -17,7 +21,7 @@ module.exports.reverse = function () {
 
 //Оператор select, который выбирает из массива
 module.exports.select = function () {
-	var keys = [];
+	var keys = [].slice.apply(arguments);
 	return function (collection) {
 		var filterCollection = [];
 		for(var i in collection){
@@ -37,7 +41,7 @@ module.exports.filterIn = function (keyFilter, valueFilter) {
 		var filterCollection = [];
 		collection.forEach(function(evade){
 			valueFilter.forEach(function(value){
-				if(evade[keyForFilter] == value){
+				if(evade[keyFilter] == value){
 					filterCollection.push(evade);
 				}
 			});
@@ -52,7 +56,7 @@ module.exports.filterEqual = function (keyFilter, valueFilter) {
 	return function (collection) {
 		var filterCollection = [];
 		collection.forEach(function(evade){
-			if(evade[keyFilter] == valueFilter){
+			if(evade[keyFilter] === valueFilter){
 				filterCollection.push(evade);
 			}
 		});
@@ -68,7 +72,7 @@ module.exports.sortBy = function (keySort, evade) {
 			return a[keySort] > b[keySort] ? 1 : -1;
 		}
 		var sortCollection = collection.sort(compared);
-		return evade === 'ask' ? sortCollection : sortCollection.reverse();
+		return evade === 'asc' ? sortCollection : sortCollection.reverse();
 	};
 };
 
@@ -93,13 +97,13 @@ module.exports.limit = function (n) {
 	        console.error('Неверный индекс!');
 	        isIndexValid = false;
 	    }
-	    return function (collection) {
+	    else {
 	        if (isValidIndex) {
 	            return collection.slice(0, n);
 	        } else {
 	            return collection;
 	        }
-	    };
+	    }
 	}; 
 };
 
