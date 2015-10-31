@@ -6,9 +6,10 @@
 */
 module.exports.query = function (collection /* операторы через запятую */) {
     var changedCollection = collection;
-    for (var op in arguments) {
-        if (op != '0') {
-            changedCollection = arguments[op](changedCollection);
+    var args = [].slice.apply(arguments);
+    for (var i = 0; i < args.length; i++) {
+        if (i != 0) {
+            changedCollection = args[i](changedCollection);
         }
     }
     // Возращаем изменённую коллекцию
@@ -49,9 +50,11 @@ module.exports.filterIn = function (keyForFilter, exceptedValues) {
         var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
             for (var j = 0; j < exceptedValues.length; j++) {
-                if (collection[i][keyForFilter].indexOf(exceptedValues[j]) != -1) {
-                    changedCollection.push(collection[i]);
-                    break;
+                if (keyForFilter in collection[i]) {
+                    if (collection[i][keyForFilter].indexOf(exceptedValues[j]) != -1) {
+                        changedCollection.push(collection[i]);
+                        break;
+                    }
                 }
             }
         }
