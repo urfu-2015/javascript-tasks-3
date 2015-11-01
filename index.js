@@ -19,7 +19,7 @@ var result = lego.query(
     lego.filterIn('favoriteFruit', ['Яблоко', 'Картофель']),
 
     // Отсортируем их по возрасту (но зачем?)
-    lego.sortBy('age', 'asc'), // Бывает только asc (от меньшего к большему) или desc (наоборот)
+    lego.sortBy('age', 'desc'), // Бывает только asc (от меньшего к большему) или desc (наоборот)
 
     // А пол выведем только первой буквой для удобства
     lego.format('gender', function (value) {
@@ -29,6 +29,16 @@ var result = lego.query(
     // На дачу влезет примерно 10 человек
     lego.limit(10)
 );
+
+var row = '';
+for (var i = 0, l = result.length; i < l; i++) {
+    row = '';
+    console.log('Запись: ' + (i + 1));
+    Object.keys(result[i]).forEach(function (element) {
+        console.log(element + ': ' + result[i][element]);
+    });
+    console.log('');
+}
 
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
 
@@ -47,3 +57,13 @@ var result = lego.query(
         )
     )
 );
+
+var row = '';
+for (var i = 0, l = result.length; i < l; i++) {
+    row = '';
+    console.log('Запись: ' + (i + 1));
+    Object.keys(result[i]).forEach(function (element) {
+        console.log(element + ': ' + result[i][element]);
+    });
+    console.log('');
+}
