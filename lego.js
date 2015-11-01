@@ -1,243 +1,185 @@
 'use strict';
 
+module.exports.query = query;
+module.exports.select = select;
+module.exports.filterIn = filterIn;
+module.exports.filterEqual = filterEqual;
+module.exports.sortBy = sortBy;
+module.exports.format = format;
+module.exports.and = and;
+module.exports.or = or;
+module.exports.limit = limit;
+
 // Список названий полей телефонной книги
 var phoneBookFields = ['age', 'gender', 'name', 'email', 'phone', 'favoriteFruit'];
-var sortTypes = {asc: 'asc', desc: 'desc'};
-var allFields = '*';
+var SORT_TYPE_ASC = 'asc';
+var SORT_TYPE_DESC = 'desc';
+var ALL_FIELDS = '*';
+
 // Если поле не присутствует в записной книжке выбрасывает исключение
 function isPhoneBookField(field) {
-    if (phoneBookFields.indexOf(field) === -1) {//includes не сработало
+    if (phoneBookFields.indexOf(field) === -1) {
         throw new Error('Invalid field: ' + field);
     }
 };
 
 function isFunction(func) {
-    if (typeof func === 'function') {
-        return true;
-    } else {
-        return false;
-    }
+    return (typeof func === 'function');
 };
 
-// Метод, который будет выполнять операции над коллекцией один за другим
-module.exports.query = function (collection,
-                                selectFields,
-                                filterCollection,
-                                sortCollection,
-                                formatCollection,
-                                limitCollection) {
-    var queryRes = [];
-
-    if (isFunction(selectFields)) {
-        queryRes = selectFields(collection);
+function doOperation(filters, operation) {
+    if (!filters.length) {
+        return function () {
+            return [];
+        };
     }
-
-    if (isFunction(filterCollection)) {
-        queryRes = Array.from(filterCollection(queryRes));
-        var i = 0;
-        var l = queryRes.length;
-        while (i < l) {
-            if (queryRes[i] === null) {
-                queryRes.splice(i, 1);
-            } else {
-                i++;
-            }
-        }
-    }
-
-    if (isFunction(sortCollection)) {
-        queryRes = Array.from(sortCollection(queryRes));
-    }
-
-    if (isFunction(formatCollection)) {
-        queryRes = Array.from(formatCollection(queryRes));
-    }
-
-    if (isFunction(limitCollection)) {
-        queryRes = Array.from(limitCollection(queryRes));
-    }
-
-    return queryRes;
-};
-
-module.exports.select = function () {
-    var fields = [];
-    if (!arguments.length) {
-        throw new Error('no selected fields');
-    }
-    if (arguments.length === 1 && arguments[0] === allFields) {
-        fields = Array.from(phoneBookFields);
-    } else {
-        for (var i = 0, l = arguments.length; i < l; i++) {
-            isPhoneBookField(arguments[i]);
-            fields.push(arguments[i]);
-        }
-    }
-
-    var selectFields = function (collection) {
+    return function (collection) {
+        var collections = [];
         var newCollection = [];
-        var record = {};
-        for (var i = 0, l = collection.length; i < l; i++) {
-            for (var j = 0, fl = fields.length; j < fl; j++) {
-                record[fields[j]] = collection[i][fields[j]];
+        filters.forEach(function (filter) {
+            collections.push(filter(collection));
+        });
+        var value;
+        for (var j = 0, l = collection.length; j < l; j++) {
+            switch (operation) {
+                case 'or':
+                    value = collections.reduce(function (prevValue, element) {
+                        return (prevValue || element[j]);
+                    }, false);
+                    break;
+                case 'and':
+                    value = collections.reduce(function (prevValue, element) {
+                        return (prevValue && element[j]);
+                    }, true);
+                    break;
+                default:
+                    value = false;
+            };
+            if (value) {
+                newCollection.push(value);
             }
-            newCollection.push(record);
-            record = {};
         }
         return newCollection;
     };
-    return selectFields;
 };
 
+// Метод, который будет выполнять операции над коллекцией один за другим
+function query(collection, selector, filter, sorter, formater, limiter) {
+    var queryRes = [];
+    if (isFunction(selector)) {
+        queryRes = selector(collection);
+    }
+    if (isFunction(filter)) {
+        queryRes = filter(queryRes).filter(function (element) {
+            return (element !== null);
+        });
+    }
+    if (isFunction(sorter)) {
+        queryRes = sorter(queryRes);
+    }
+    if (isFunction(formater)) {
+        queryRes = formater(queryRes);
+    }
+    if (isFunction(limiter)) {
+        queryRes = limiter(queryRes);
+    }
+    return queryRes;
+};
 
-module.exports.filterIn = filterIn;
+function select() {
+    var fields = [];
+    var arg = Array.from(arguments);
+    if (!arg.length) {
+        throw new Error('no selected fields');
+    }
+    if (arg.length === 1 && arg[0] === ALL_FIELDS) {
+        fields = phoneBookFields;
+    } else {
+        fields = arg.filter(function (element) {
+            isPhoneBookField(element);
+            return true;
+        });
+    }
+
+    return function (collection) {
+        var newCollection = collection.map(function (element) {
+            var record = {};
+            for (var j = 0, l = fields.length; j < l; j++) {
+                record[fields[j]] = element[fields[j]];
+            }
+            return record;
+        });
+        return newCollection;
+    };
+};
+
 function filterIn(field, values) {
     isPhoneBookField(field);
-    var filter = {
-        field: field,
-        values: values
-    };
-
-    var filterCollection = function (collection) {
-        return collection.map( function(element) {
-            if (filter.values.indexOf(element[filter.field]) === -1) {
+    return function (collection) {
+        return collection.map(function (element) {
+            if (values.indexOf(element[field]) === -1) {
                 return element = null;
             } else {
                 return element;
             }
         });
-      /*   for (var i = 0, l = collection.length; i < l; i++) {
-            if (filter && filter.values.indexOf(collection[i][filter.field]) === -1) {
-                collection[i] = null;
-            }
-        } 
-        return newCollection;*/
     };
-    return filterCollection;
 };
 
-module.exports.sortBy = function (field, type) {
+function filterEqual(field, value) {
+    return filterIn(field, [value]);
+};
+
+function sortBy(field, type) {
     isPhoneBookField(field);
     if (type === undefined) {
-        type = sortTypes.asc;
+        type = SORT_TYPE_ASC;
     }
-    if (type !== sortTypes.desc && type !== sortTypes.asc) {
+    if (type !== SORT_TYPE_DESC && type !== SORT_TYPE_ASC) {
         throw new Error('Invalid sort type: ' + type);
     }
-    var sorter = {
-        field: field,
-        type: type
-    };
 
-    var sortCollection = function (collection) {
+    return function (collection) {
         var buferRecord;
-        for (var i = 0, l = collection.length; i < l; i++) {
-            for (var j = i + 1, l = collection.length; j < l; j++) {
-                if (collection[i][sorter.field] > collection[j][sorter.field] &&
-                    sorter.type === sortTypes.asc ||
-                    collection[i][sorter.field] < collection[j][sorter.field] &&
-                        sorter.type === sortTypes.desc) {
-                    buferRecord = Object.assign({}, collection[i]);
-                    collection[i] = Object.assign({}, collection[j]);
-                    collection[j] = Object.assign({}, buferRecord);
-                    buferRecord = {};
+        var l = collection.length;
+        for (var i = 0; i < l; i++) {
+            for (var j = i + 1; j < l; j++) {
+                if (collection[i][field] > collection[j][field] && type === SORT_TYPE_ASC ||
+                    collection[i][field] < collection[j][field] && type === SORT_TYPE_DESC) {
+                    buferRecord = collection[i];
+                    collection[i] = collection[j];
+                    collection[j] = buferRecord;
                 }
             }
         }
         return collection;
     };
-    return sortCollection;
 };
 
-module.exports.format = function (field, func) {
+function format(field, func) {
     isPhoneBookField(field);
     if (!isFunction(func)) {
         throw new Error('Invalid type: ' + typeof func + '. Function expected');
     }
-    var formater = {
-        field: field,
-        func: func
-    };
 
-    var formatCollection = function (collection) {
-        if (formater) {
-            for (var i = 0, l = collection.length; i < l; i++) {
-                collection[i][formater.field] = formater.func(collection[i][formater.field]);
-            }
-        }
-        return collection;
+    return function (collection) {
+        return collection.map(function (element) {
+            element[field] = func(element[field])
+            return element;
+        });
     };
-    return formatCollection;
 };
 
-module.exports.filterEqual = function (field, value) {
-    return filterIn(field, [value]);
+function or() {
+    return doOperation(Array.from(arguments), 'or');
 };
 
-module.exports.or = function () {
-    if (!arguments.length) {
-        return function () {
-            return [];
-        };
-    }
-    var someFunctions = Array.from(arguments);
-
-    var justOr = function (collection) {
-        var collections = [];
-        var newCollection = [];
-        for (var i = 0, l = someFunctions.length; i < l; i++) {
-            newCollection = Array.from(collection);
-            collections.push(someFunctions[i](newCollection));
-            newCollection = [];
-        }
-        var defaultValue;
-        for (var j = 0, cl = collection.length; j < cl; j++) {
-            defaultValue = false;
-            for (var i = 0, l = collections.length; i < l; i++) {
-                defaultValue = defaultValue || collections[i][j];
-            }
-            if (defaultValue) {
-                newCollection.push(defaultValue);
-            }
-        }
-        return newCollection;
-    };
-    return justOr;
+function and() {
+    return doOperation(Array.from(arguments), 'and');
 };
 
-module.exports.and = function () {
-    if (!arguments.length) {
-        return function () {
-            return [];
-        };
-    }
-    var someFunctions = Array.from(arguments);
-
-    var justAnd = function (collection) {
-        var collections = [];
-        var newCollection = [];
-        for (var i = 0, l = someFunctions.length; i < l; i++) {
-            newCollection = Array.from(collection);
-            collections.push(someFunctions[i](newCollection));
-            newCollection = [];
-        }
-        var defaultValue;
-        for (var j = 0, cl = collection.length; j < cl; j++) {
-            defaultValue = true;
-            for (var i = 0, l = collections.length; i < l; i++) {
-                defaultValue = defaultValue && collections[i][j];
-            }
-            if (defaultValue) {
-                newCollection.push(defaultValue);
-            }
-        }
-        return newCollection;
-    };
-    return justAnd;
-};
-
-// Оператор limit, который выбирает первые N записей
-module.exports.limit = function (n) {
+// Оператор limit, который выбирает первые n записей
+function limit(n) {
     var lim;
 
     if (n === undefined) {
@@ -248,12 +190,10 @@ module.exports.limit = function (n) {
         throw new Error('Invalid limit: ' + n);
     }
 
-    var limitCollection = function (collection) {
+    return function (collection) {
         if (lim) {
-            collection.splice(lim, Number.MAX_VALUE);
+            return collection.slice(0, lim);
         }
         return collection;
     };
-
-    return limitCollection;
 };
