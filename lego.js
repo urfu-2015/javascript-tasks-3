@@ -14,31 +14,40 @@ module.exports.query = function (collection)
 };
 
 module.exports.select = function () {
+	var conditions = [];
 	var whatNeed = [false, false, false, false, false, false];
-	var properties = ['age', 'gender', 'name', 'email', 'phone','favoriteFruit'];
 	for (var i = 0; i < arguments.length; i++)
-	{	
-		for (var j = 0; j < 6; j++)
+	{
+		conditions[i] = arguments[i];
+	}
+	
+	return function(collection){
+	var properties = Object.keys(collection[0]);
+	
+	for (var i = 0; i < conditions.length; i++)
+	{
+		
+		for (var j = 0; j < properties.length; j++)
 			{
-				if (arguments[i] == properties[j])
+				if (conditions[i] == properties[j])
 				{
 					whatNeed[j] = true;
 				}
 			}
 	}
-	return function(collection){
-		for (var i = 0; i < collection.length; i++)
+	
+	for (var i = 0; i < collection.length; i++)
+	{
+		for (var j = 0; j < whatNeed.length; j++)
 		{
-			for (var j = 0; j < whatNeed.length; j++)
+			if (!whatNeed[j])
 			{
-				if (!whatNeed[j])
-				{
-						delete collection[i][properties[j]];
-				}
+				delete collection[i][properties[j]];
 			}
 		}
+	}
 		return collection;
-		};
+	};
 };
 
 //нихт арбайтен
