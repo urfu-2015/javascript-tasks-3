@@ -97,12 +97,14 @@ module.exports.filterEqual = function (key, value) {
 module.exports.or = function () {
     var change = [].slice.call(arguments);
     return function (collection) {
-        var changedCollection = [];
+        var changedCollection = new Set();
         for (var element in change) {
             var friends = change[element](collection);
-            changedCollection = changedCollection.concat(friends);
+            for (var index in friends) {
+                changedCollection.add(friends[index])
+            }
         }
-        return changedCollection;
+        return Array.from(changedCollection);
     };
 };
 
