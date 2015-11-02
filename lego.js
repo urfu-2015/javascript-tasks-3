@@ -50,20 +50,19 @@ module.exports.select = function () {
 	};
 };
 
-//нихт арбайтен
 module.exports.filterEqual = function(){
 	var prop = arguments[0];
 	var wish = arguments[1];
-	var changedCollection = [];
 	
 	return function(collection){	
 		for(var i = 0; i < collection.length; i++){
-			if (collection[i][prop] == wish)
+			if (collection[i][prop] != wish)
 			{
-				changedCollection.push(collection[i]);
+				collection.splice(i,1);
+				i--;
 			}
 		}
-	return changedCollection;
+	return collection;
 	};
 };
 
