@@ -34,12 +34,7 @@ module.exports.reverse = function () {
  */
 module.exports.limit = function (n) {
     return function (collection) {
-        var changedCollection = [];
-        for (var elem = 0; elem < n; ++elem) {
-            changedCollection.push(collection[elem]);
-        }
-        // Возращаем изменённую коллекцию
-        return changedCollection;
+        return collection.slice(0, n + 1);
     };
 };
 
