@@ -65,11 +65,11 @@ module.exports.select = function () {
  * Оператор filterIn делает выборку по ключам определенных полей
  * @returns {Function}
  */
-module.exports.filterIn = function (fieldToFilterBy, valuesToFilterBy) {
+module.exports.filterIn = function (field, value) {
     return function (collection) {
         var changedCollection = [];
         for (var elem = 0; elem < collection.length; ++elem) {
-            if (valuesToFilterBy.indexOf(collection[elem][fieldToFilterBy]) !== -1) {
+            if (value.indexOf(collection[elem][field]) !== -1) {
                 changedCollection.push(collection[elem]);
             }
         }
@@ -84,6 +84,21 @@ module.exports.filterIn = function (fieldToFilterBy, valuesToFilterBy) {
 // * @param b - второй человек
 // * @returns {number}
 // */
+function sorting (direction) {
+    return function comparePeople(a, b) {
+        // Делаем сортировку для чисел и строк
+        // Б.О.О можем проверить только один параметр
+        if (typeof a === 'number') {
+            a = parseInt(a[key], 10);
+            b = parseInt(b[key], 10);
+        }
+        if (direction === 'asc') {
+            return a < b ? 1 : -1;
+        } else {
+            return a > b ? 1 : -1;
+        }
+    }
+}
 
 /**
  * Сортирует по возрастанию или убыванию
@@ -92,16 +107,8 @@ module.exports.filterIn = function (fieldToFilterBy, valuesToFilterBy) {
  * @returns {Function}
  */
 module.exports.sortBy = function (key, order) {
-    function comparePeople(a, b) {
-        if (parseInt(a[key], 10) > parseInt(b[key], 10)) {
-            return 1;
-        }
-        if (parseInt(a[key], 10) < parseInt(b[key], 10)) {
-            return -1;
-        }
-    }
     return function (collection) {
-        var changedCollection = collection.sort(comparePeople);
+        var changedCollection = collection.sort(sorting(order));
         if (order === 'desc') {
             changedCollection.reverse();
         }
@@ -166,9 +173,7 @@ module.exports.or = function () {
                 ansSet.add(partOfCollection[i]);
             }
         }
-        ansSet.forEach(function (value) {
-            changedCollection.push(value);
-        });
+        changedCollection = Array.from(ansSet);
         return changedCollection;
     };
 };
