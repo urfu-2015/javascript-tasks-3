@@ -62,14 +62,12 @@ module.exports.filterIn = function (field, criteria) {
 };
 
 module.exports.filterEqual = function (field, criterion) {
-    return function (collection) {
-        return module.exports.filterIn(field, criterion);
-    };
+    return module.exports.filterIn(field, criterion);
 };
 
 module.exports.sortBy = function (field, criterion) {
     var sorter = function (i, j) {
-        return criterion === "acs" ? i < j : i > j
+        return criterion === "asc" ? i < j : i > j;
     } 
     return function (collection) {
         return collection.sort(sorter);
