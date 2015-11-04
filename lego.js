@@ -126,9 +126,9 @@ module.exports.format = function (key, formatter) {
     return function (collection) {
         var changedCollection = [];
         for (var elem = 0; elem < collection.length; ++elem) {
-            var changedMen = collection[elem];
-            changedMen[key] = formatter(collection[elem][key]);
-            changedCollection.push(changedMen);
+            var changedMan = collection[elem];
+            changedMan[key] = formatter(collection[elem][key]);
+            changedCollection.push(changedMan);
         }
         // Возращаем изменённую коллекцию
         return changedCollection;
