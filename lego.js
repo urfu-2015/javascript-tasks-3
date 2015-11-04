@@ -2,7 +2,7 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
-    for (var functions = 1; functions < arguments.length; functions++) {
+    for (var functions = 1, length = arguments.length; functions < length; functions++) {
         collection = arguments[functions](collection);
     }
     return collection;
@@ -68,7 +68,7 @@ module.exports.filterEqual = function (field, criterion) {
 
 module.exports.sortBy = function (field, criterion) {
     var sorter = function (i, j) {
-        return criterion === "acs" ? i < j : i > j
+        return criterion === "asc" ? i < j : i > j;
     } 
     return function (collection) {
         return collection.sort(sorter);
