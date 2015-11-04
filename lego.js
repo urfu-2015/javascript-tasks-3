@@ -27,7 +27,7 @@ module.exports.select = function () {
 		for(var i in collection){
 			filterCollection[i] = [];
 			keys.forEach(function(evade){
-				filterCollection[k][evade] = collection[k][evade];
+				filterCollection[i][evade] = collection[i][evade];
 			});
 		}
 		return filterCollection;
@@ -98,7 +98,7 @@ module.exports.limit = function (n) {
 	        isIndexValid = false;
 	    }
 	    else {
-	        if (isValidIndex) {
+	        if (isIndexValid) {
 	            return collection.slice(0, n);
 	        } else {
 	            return collection;
