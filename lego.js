@@ -67,26 +67,11 @@ module.exports.filterEqual = function (field, criterion) {
 };
 
 module.exports.sortBy = function (field, criterion) {
+    var sorter = function (i, j) {
+        return criterion === "acs" ? i < j : i > j
+    } 
     return function (collection) {
-        var newCollection = [];
-        if (criterion == 'asc') {
-            collection.sort(function (i, j) {
-                if (i[field] > j[field]) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            });
-        } else {
-            collection.sort(function (i, j) {
-                if (i[field] < j[field]) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            });
-        }
-        return collection;
+        return collection.sort(sorter);
     };
 };
 
