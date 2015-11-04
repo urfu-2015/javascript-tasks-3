@@ -19,8 +19,8 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        if (limit > collection.lengt) {
-            return;
+        if (limit > collection.length) {
+            n = collection.length;
         }
         return collection.slice(0, n);
     };
