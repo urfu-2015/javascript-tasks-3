@@ -51,8 +51,10 @@ module.exports.filterIn = function (field, criteria) {
     return function (collection) {
         var newCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            if (collection[i][field] === criteria) {
-                newCollection.push(collection[i]);
+            for (var j = 0; j < criteria.length; j++) {
+                if (collection[i][field] === criteria[j]) {
+                    newCollection.push(collection[i]);
+                }
             }
         }
         return newCollection;
@@ -60,7 +62,7 @@ module.exports.filterIn = function (field, criteria) {
 };
 
 module.exports.filterEqual = function (field, criterion) {
-    return module.exports.filterIn(field, criterion);
+    return module.exports.filterIn(field, [criterion]);
 };
 
 module.exports.sortBy = function (field, criterion) {
@@ -71,6 +73,8 @@ module.exports.sortBy = function (field, criterion) {
         return collection.sort(sorter);
     };
 };
+var s = module.exports.filterEqual('age', 5)([ {age: 4}, {age:3}, {age:5}]);
+console.log(s);
 module.exports.format = function (field, func) {
     return function (collection) {
         for (var contact = 0; contact < collection.length; contact++) {
