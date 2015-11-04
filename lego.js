@@ -86,17 +86,10 @@ module.exports.filterIn = function (field, value) {
 // */
 function sorting (direction) {
     return function comparePeople(a, b) {
-        // Делаем сортировку для чисел и строк
-        // Б.О.О можем проверить только один параметр
-        if (typeof a === 'number') {
-            a = parseInt(a[key], 10);
-            b = parseInt(b[key], 10);
-        }
         if (direction === 'asc') {
             return a < b ? 1 : -1;
-        } else {
-            return a > b ? 1 : -1;
         }
+        return a > b ? 1 : -1;
     }
 }
 
@@ -108,11 +101,7 @@ function sorting (direction) {
  */
 module.exports.sortBy = function (key, order) {
     return function (collection) {
-        var changedCollection = collection.sort(sorting(order));
-        if (order === 'desc') {
-            changedCollection.reverse();
-        }
-        return changedCollection;
+        return collection.sort(sorting(order));
     };
 };
 
