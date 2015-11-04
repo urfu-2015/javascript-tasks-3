@@ -51,10 +51,8 @@ module.exports.filterIn = function (field, criteria) {
     return function (collection) {
         var newCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            for (var j = 0; j < criteria.length; j++) {
-                if (collection[i][field] === criteria[j]) {
-                    newCollection.push(collection[i]);
-                }
+            if (collection[i][field] === criteria) {
+                newCollection.push(collection[i]);
             }
         }
         return newCollection;
@@ -67,13 +65,12 @@ module.exports.filterEqual = function (field, criterion) {
 
 module.exports.sortBy = function (field, criterion) {
     var sorter = function (i, j) {
-        return criterion === "asc" ? i[field] < j[field] : i[field] > j[field];
+        return criterion === "asc" ? i[field] > j[field] : i[field] < j[field];
     } 
     return function (collection) {
         return collection.sort(sorter);
     };
 };
-
 module.exports.format = function (field, func) {
     return function (collection) {
         for (var contact = 0; contact < collection.length; contact++) {
