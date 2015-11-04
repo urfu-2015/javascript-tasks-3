@@ -2,7 +2,7 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
-    for (var functions = 1, length = arguments.length; functions < length; functions++) {
+    for (var functions = 1; functions < arguments.length; functions++) {
         collection = arguments[functions](collection);
     }
     return collection;
@@ -22,6 +22,9 @@ module.exports.limit = function (n) {
         if (n > collection.length) {
             n = collection.length;
         }
+        if (n < 0) {
+            return [];
+        }
         return collection.slice(0, n);
     };
 };
@@ -32,14 +35,12 @@ module.exports.select = function () {
         var newCollection = [];
         for (var i = 0; i < collection.length; i++) {
             var newField = {};
-            collection.reduce(function () {
-                for (var j = 0; j < fields.length; j++) {
-                    if (fields[j] == undefined) {
-                        return;
-                    }
+            for (var j = 0; j < fields.length; j++) {
+                console.log(fields[j]);
+                if (collection[i][fields[j]] !== undefined) {
                     newField[fields[j]] = collection[i][fields[j]];
                 }
-            });
+            }
             newCollection.push(newField);
         }
         return newCollection;
@@ -68,7 +69,7 @@ module.exports.filterEqual = function (field, criterion) {
 
 module.exports.sortBy = function (field, criterion) {
     var sorter = function (i, j) {
-        return criterion === "asc" ? i < j : i > j;
+        return criterion === "acs" ? i < j : i > j
     } 
     return function (collection) {
         return collection.sort(sorter);
