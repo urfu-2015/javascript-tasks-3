@@ -21,9 +21,7 @@ module.exports.reverse = function () {
 
 module.exports.limit = function (n) {
     return function (collection) {
-        var changedCollection = collection.slice(0, n);
-        console.log(changedCollection);
-        return changedCollection;
+        return collection.slice(0, n);
     };
 };
 
@@ -32,8 +30,10 @@ module.exports.select = function () {
     return function (collection) {
         return collection.map(function (record) {
             for (var key in record) {
-                if (fields.indexOf(key) === -1) {
-                    delete record[key];
+                if (record.hasOwnProperty(key)) {
+                    if (fields.indexOf(key) === -1) {
+                        delete record[key];
+                    }
                 }
             }
             return record;
@@ -42,18 +42,13 @@ module.exports.select = function () {
 };
 
 module.exports.filterIn = function (property, values) {
-    return function (collection) {
-        var changedCollection = collection.filter(function (filterByValues) {
-            for (var i = 0; i < values.length; i++) {
-                if (filterByValues[property] === values[i]) {
-                    return true;
-                    break;
-                }
-            }
+    return collection.filter(function (filterByValues) {
+        if (values.indexOf(filterByValues[property]) === -1) {
             return false;
-        });
-        return changedCollection;
-    };
+        } else {
+            return true;
+        }
+    });
 };
 
 module.exports.format = function (property, func) {
@@ -69,12 +64,12 @@ module.exports.format = function (property, func) {
 module.exports.sortBy = function (property, howSort) {
     return function (collection) {
         var changedCollection = collection.sort(function (firstRec, secondRec) {
-            return [firstRec[property],secondRec[property]];
+            return firstRec[property] - secondRec[property];
         });
-        return (howSort === 'asc') ? changedCollection : changedCollection.reverse();
+        return howSort === 'asc' ? changedCollection : changedCollection.reverse();
     };
 };
 
 module.exports.filterEqual = function (property, value) {
-    filterIn(property, [value]);
+    return filterIn(property, [value]);
 };
