@@ -3,101 +3,69 @@
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) 
 {
-	var i;
-	var changedCollection = collection;
-	for (i = 1; i < arguments.length; i++)
+	for (var i = 1; i < arguments.length; i++)
 	{
-		arguments[i](changedCollection);
+		collection = arguments[i](collection);
 	}
-	return changedCollection;
+	return collection;
 
 };
 
 module.exports.select = function () {
 	var conditions = [];
-	var whatNeed = [false, false, false, false, false, false];
+	
 	for (var i = 0; i < arguments.length; i++)
 	{
 		conditions[i] = arguments[i];
 	}
-	
-	return function(collection){
-	var properties = Object.keys(collection[0]);
-	
-	for (var i = 0; i < conditions.length; i++)
-	{
-		
-		for (var j = 0; j < properties.length; j++)
-			{
-				if (conditions[i] == properties[j])
-				{
-					whatNeed[j] = true;
-				}
-			}
-	}
-	
+	return function (collection){
 	for (var i = 0; i < collection.length; i++)
-	{
-		for (var j = 0; j < whatNeed.length; j++)
 		{
-			if (!whatNeed[j])
-			{
-				delete collection[i][properties[j]];
-			}
+			for (var j = 0; j < Object.keys(collection[0]).length; j++)
+				{
+					if (conditions.indexOf(Object.keys(collection[i])[j]) === -1)
+						{
+							delete collection[i][Object.keys(collection[i])[j]];
+							j--;
+						}
+				}
 		}
-	}
-		return collection;
+	return collection;
 	};
 };
 
 module.exports.filterEqual = function(){
-	var prop = arguments[0];
-	var wish = arguments[1];
+	var property = arguments[0];
+	var value = arguments[1];
+	var changedCollection = [];
 	
 	return function(collection){	
 		for(var i = 0; i < collection.length; i++){
-			if (collection[i][prop] != wish)
+			if (collection[i][property] == value)
 			{
-				collection.splice(i,1);
-				i--;
+				changedCollection.push(collection[i]);
 			}
 		}
-	return collection;
+	return changedCollection;
 	};
 };
 
 
 module.exports.filterIn = function () {
-	var prop = arguments[0];
-	var fruits = arguments[1];
-	var wishList = [];
+	var property = arguments[0];
+	var values = arguments[1];
+	var changedCollection = [];
 	
 	return function(collection)
 	{
-		for (var i = 0; i < fruits.length; i++){
-			for (var j = 0; j < collection.length; j++){
-					if (collection[j] != null)
-					{
-					if (fruits[i] == collection[j][prop])
-					{
-						wishList[j] = collection[j];
-					}
-					}
+		for (var i = 0; i < collection.length; i++)
+		{
+			if (values.indexOf(collection[i][property]) != -1)
+				{
+					changedCollection.push(collection[i]);
 				}
-			}
-		var count = 0;
-		while(count < wishList.length){
-			if (collection[count] != wishList[count])
-			{
-				collection.splice(count,1);
-				wishList.splice(count,1);
-			}
-			else
-			{
-				count++;
-			}
 		}
-	return collection;
+		return changedCollection;
 	};
 };
 
@@ -127,8 +95,8 @@ module.exports.sortBy = function () {
 				}
 			}
 		}	
-			return collection;
 	}
+	return collection;
 	};
 };
 module.exports.format = function () {
@@ -157,9 +125,17 @@ module.exports.reverse = function () {
 };
 
 module.exports.limit = function (n) {
-		return function (collection) { 
-		collection.splice(n, collection.length); 
-		return collection; 
+		return function (collection) {
+		if (n>0 && n < collection.length) 
+		{		
+			var changedCollection = collection;
+			changedCollection.splice(n, changedCollection.length); 
+			return changedCollection;
+		}
+		else
+		{
+			return collection;
+		}
 	};
 };
 
