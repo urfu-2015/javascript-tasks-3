@@ -4,14 +4,14 @@
 module.exports.query = function (collection) {
     var args = [].slice.call(arguments);
     args.splice(0, 1);
-    console.log(args);
+    /*console.log(args);*/
     var ind;
-    var collectionA = collection;
     for (ind in args)
     {
-        collectionA = args[ind](collectionA);
+        collection = args[ind](collection);
     }
-    console.log(collectionA);
+    return collection;
+    /*console.log(collection);*/
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -24,10 +24,6 @@ module.exports.reverse = function () {
     };
 };
 
-// Оператор limit, который выбирает первые N записей
-module.exports.limit = function (n) {
-    // Магия
-};
 
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
@@ -45,7 +41,7 @@ module.exports.select = function(){
         for (index in collection){
             var i;
             var newEntry = {};
-            for (i = 1; i < args.length; i++)
+            for (i in args)
             {
                 newEntry[args[i]] = collection[index][args[i]];
             }
@@ -78,7 +74,6 @@ module.exports.filterIn = function(){
 };
 
 module.exports.filterEqual = function(){
-
     var nameField = arguments[0];
     var valueOfField = arguments[1];
     return function(collection){
@@ -98,9 +93,16 @@ module.exports.filterEqual = function(){
 };
 
 module.exports.sortBy = function(fieldForOrder, order) {
-
     function sortedRule(a, b){
-        return a[fieldForOrder] - b[fieldForOrder];
+        if (a[fieldForOrder] > b[fieldForOrder])
+        {
+            return 1;
+        }
+        if (a[fieldForOrder] < b[fieldForOrder])
+        {
+            return -1;
+        }
+        return 0;
     }
     if (order === 'asc') {
         return function (collection) {
@@ -148,8 +150,45 @@ module.exports.limit =  function() {
         var i;
         for (i = 0; i < number; i++)
         {
-            changedCollection.push(collection);
+            changedCollection.push(collection[i]);
         }
         return changedCollection;
     }
 };
+
+
+module.exports.and = function (){
+    var arg = [].slice.call(arguments);
+    return function(collection){
+        var first = arg[0](collection);
+        var second = arg[1](collection);
+        var firstCollection = new Set(first);
+        var secondCollection = new Set(second);
+        var result = [];
+        for (var elem of firstCollection){
+            if (secondCollection.has(elem))
+            {
+                result.push(elem);
+            }
+        }
+        return result;
+    }
+}
+
+module.exports.or = function (){
+    var arg = [].slice.call(arguments);
+    return function(collection){
+        var first = arg[0];
+        var second = arg[1];
+        var firstCollection = new Set(arg[0](collection));
+        var secondCollection = new Set(arg[1](collection));
+        var result = new Set();
+        for (var elem of firstCollection){
+            result.add(elem);
+        }
+        for (var elem of secondCollection){
+            result.add(elem);
+        }
+        return Array.from(result);
+    }
+}
