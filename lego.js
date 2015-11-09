@@ -44,11 +44,7 @@ module.exports.select = function () {
 module.exports.filterIn = function (property, values) {
     return function (collection) {
         return collection.filter(function (filterByValues) {
-            if (values.indexOf(filterByValues[property]) === -1) {
-                return false;
-            } else {
-                return true;
-            }
+            return values.indexOf(filterByValues[property]) !== -1;
         });
     };
 };
@@ -71,8 +67,6 @@ module.exports.sortBy = function (property, howSort) {
             }
             if (firstRec[property] < secondRec[property]) {
                 return -1;
-            } else {
-                return 0;
             }
         });
         return howSort === 'asc' ? changedCollection : changedCollection.reverse();
