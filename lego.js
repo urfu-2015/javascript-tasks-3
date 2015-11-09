@@ -42,7 +42,7 @@ module.exports.select = function () {
 };
 
 module.exports.filterIn = function (property, values) {
-    return function(collection) {
+    return function (collection) {
         return collection.filter(function (filterByValues) {
             if (values.indexOf(filterByValues[property]) === -1) {
                 return false;
@@ -66,7 +66,14 @@ module.exports.format = function (property, func) {
 module.exports.sortBy = function (property, howSort) {
     return function (collection) {
         var changedCollection = collection.sort(function (firstRec, secondRec) {
-            return firstRec[property] - secondRec[property];
+            if (firstRec[property] > secondRec[property]) {
+                return 1;
+            }
+            if (firstRec[property] < secondRec[property]) {
+                return -1;
+            } else {
+                return 0;
+            }
         });
         return howSort === 'asc' ? changedCollection : changedCollection.reverse();
     };
