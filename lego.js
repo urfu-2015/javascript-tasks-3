@@ -42,13 +42,15 @@ module.exports.select = function () {
 };
 
 module.exports.filterIn = function (property, values) {
-    return collection.filter(function (filterByValues) {
-        if (values.indexOf(filterByValues[property]) === -1) {
-            return false;
-        } else {
-            return true;
-        }
-    });
+    return function(collection) {
+        return collection.filter(function (filterByValues) {
+            if (values.indexOf(filterByValues[property]) === -1) {
+                return false;
+            } else {
+                return true;
+            }
+        });
+    };
 };
 
 module.exports.format = function (property, func) {
@@ -71,5 +73,5 @@ module.exports.sortBy = function (property, howSort) {
 };
 
 module.exports.filterEqual = function (property, value) {
-    return filterIn(property, [value]);
+    return this.filterIn(property, [value]);
 };
