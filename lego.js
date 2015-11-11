@@ -19,8 +19,12 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
 	return function (collection) {
-        collection.splice(n, collection.length);
-		return collection;
+        if (n > 0) {
+            collection.splice(n, collection.length);
+            return collection;
+        } else {
+            return {};
+        }
     };
 };
 
@@ -81,7 +85,9 @@ module.exports.filterIn = function () {
 								break;
 							}
 						}
-					}
+					} else {
+                        numCorrectPropOfPers +=1;
+                    }
 				}
 			if (numCorrectPropOfPers != numPropInFilt) {
 			collection.splice(i,1);
@@ -121,7 +127,9 @@ module.exports.filterEqual = function () {
 							} else {
 								break;
 							}
-						}	
+						} else {
+                            numCorrectPropOfPers +=1;
+                        }	
 					}
 			if (numCorrectPropOfPers != numPropInFilt) {
 				collection.splice(i,1);
