@@ -17,19 +17,21 @@ module.exports.select = function () {
     for (var i = 0; i < arguments.length; i++) {
         conditions[i] = arguments[i];
     }
+    
     return function (collection) {
         for (var i = 0; i < collection.length; i++) {
-            for (var j = 0; j < Object.keys(collection[0]).length; j++) {
-			    //для каждого элемента из коллекции пробегаемся по его ключам, и если ключа нет в массиве conditions, удаляем его
-                if (conditions.indexOf(Object.keys(collection[i])[j]) === -1) {
-                    delete collection[i][Object.keys(collection[i])[j]];
-                    j--;
-                }
-            }
-        }
+            //пробегаемся по всем ключам итого элемента
+		    Object.keys(collection[i]).forEach(function(property){
+		        //если какого то ключа нет в условии - удаляем его
+                if (conditions.indexOf(property) === -1) {
+				    delete collection[i][property];
+				}
+            });				
+	    }
         return collection;
     };
 };
+
 
 
 module.exports.filterEqual = function(){
