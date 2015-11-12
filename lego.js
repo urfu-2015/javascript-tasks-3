@@ -23,8 +23,10 @@ module.exports.select = function () {
             //для каждого элемента коллекции создаем объект
 		    var object ={};
 		    for(var j = 0; j < conditions.length; j++) {
-		        //наполняем его свойствами и добавляем в новую коллекцию
-				object[conditions[j]] = collection[i][conditions[j]];
+		        //если такое поле есть, наполняем объект свойствами и добавляем в новую коллекцию
+				if (Object.keys(collection[i]).indexOf(conditions[j]) != -1) {
+				    object[conditions[j]] = collection[i][conditions[j]];
+				}
 	        }
 			changedCollection.push(object);
 		}
