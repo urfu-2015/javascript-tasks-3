@@ -17,18 +17,18 @@ module.exports.select = function () {
     for (var i = 0; i < arguments.length; i++) {
         conditions[i] = arguments[i];
     }
-    
     return function (collection) {
+	    var changedCollection = [];
         for (var i = 0; i < collection.length; i++) {
-            //пробегаемся по всем ключам итого элемента
-		    Object.keys(collection[i]).forEach(function(property){
-		        //если какого то ключа нет в условии - удаляем его
-                if (conditions.indexOf(property) === -1) {
-				    delete collection[i][property];
-				}
-            });				
-	    }
-        return collection;
+            //для каждого элемента коллекции создаем объект
+		    var object ={};
+		    for(var j = 0; j < conditions.length; j++) {
+		        //наполняем его свойствами и добавляем в новую коллекцию
+				object[conditions[j]] = collection[i][conditions[j]];
+	        }
+			changedCollection.push(object);
+		}
+        return changedCollection;
     };
 };
 
@@ -119,8 +119,10 @@ module.exports.reverse = function () {
 
 module.exports.limit = function (n) {
     return function (collection) {
-	    //Если н не превышает длину коллекции и больше 0, то обрезаем коллекцию
-        if (n>0 && n < collection.length) {		
+        if (n <= 0) {
+		    return [];
+		}
+		else if (n < collection.length) {		
             var changedCollection = collection;
             changedCollection.splice(n, changedCollection.length); 
             return changedCollection;
