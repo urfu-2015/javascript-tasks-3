@@ -1,5 +1,32 @@
 'use strict';
 
+var cloner = {
+    _clone: function _clone(obj) {
+        if (obj instanceof Array) {
+            var out = [];
+            for (var i = 0, len = obj.length; i < len; i++) {
+                var value = obj[i];
+                out[i] = (value !== null && typeof value === "object") ? _clone(value) : value;
+            }
+        } else {
+            var out = {};
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    var value = obj[key];
+                    out[key] = (value !== null && typeof value === "object") ? _clone(value) : value;
+                }
+            }
+        }
+        return out;
+    },
+
+    clone: function(it) {
+        return this._clone({
+            it: it
+        }).it;
+    }
+};
+
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection) {
     var args = [].slice.call(arguments);
@@ -17,13 +44,13 @@ module.exports.query = function (collection) {
 // Оператор reverse, который переворачивает коллекцию
 module.exports.reverse = function () {
     return function (collection) {
-        var changedCollection = collection.reverse();
-
+        console.log(collection);
+        var changedCollection = cloner.clone(collection).reverse();
         // Возращаем изменённую коллекцию
+        console.log(changedCollection);
         return changedCollection;
     };
 };
-
 
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
@@ -32,18 +59,18 @@ module.exports.reverse = function () {
 // or и and
 
 module.exports.select = function(){
-
     var args = [].slice.call(arguments);
-    return function (collection)
-    {
+    return function (collection) {
         var changedCollection = [];
         var index;
         for (index in collection){
             var i;
             var newEntry = {};
-            for (i in args)
-            {
-                newEntry[args[i]] = collection[index][args[i]];
+            for (i in args) {
+
+                if (collection[index][args[i]] !== undefined) {
+                    newEntry[args[i]] = collection[index][args[i]];
+                }
             }
             changedCollection.push(newEntry);
         }
@@ -52,9 +79,9 @@ module.exports.select = function(){
 
 };
 
-module.exports.filterIn = function(){
-    var nameField = arguments[0];
-    var valuesOfField = arguments[1];
+module.exports.filterIn = function(nameField, valuesOfField){
+    //var nameField = arguments[0];
+    //var valuesOfField = arguments[1];
     return function(collection){
         var index;
         var changedCollection = [];
@@ -73,9 +100,9 @@ module.exports.filterIn = function(){
     }
 };
 
-module.exports.filterEqual = function(){
-    var nameField = arguments[0];
-    var valueOfField = arguments[1];
+module.exports.filterEqual = function(nameField, valueOfField){
+    //var nameField = arguments[0];
+    //var valueOfField = arguments[1];
     return function(collection){
         var index;
         var changedCollection = [];
@@ -93,29 +120,23 @@ module.exports.filterEqual = function(){
 };
 
 module.exports.sortBy = function(fieldForOrder, order) {
-    function sortedRule(a, b){
-        if (a[fieldForOrder] > b[fieldForOrder])
-        {
-            return 1;
-        }
-        if (a[fieldForOrder] < b[fieldForOrder])
-        {
-            return -1;
-        }
-        return 0;
+    function sortedRule(order){
+        return function (a, b){
+            a = a[fieldForOrder];
+            b = b[fieldForOrder];
+            switch (order) {
+                case 'asc':
+                    return a > b ? 1 : a < b ? -1 : 0;
+                case 'desc':
+                    return a < b ? 1 : a > b ? -1 : 0;
+            }
+        };
     }
-    if (order === 'asc') {
-        return function (collection) {
-            var changedCollection = collection.sort(sortedRule);
-            return changedCollection;
-        }
-    }
-    if (order === 'desk'){
-        return function (collection) {
-            var changedCollection = collection.sort(sortedRule).reverse();
 
-            return changedCollection;
-        }
+    return function (collection) {
+
+        var changedCollection = cloner.clone(collection).sort(sortedRule(order));
+        return changedCollection;
     }
 };
 
@@ -125,7 +146,6 @@ module.exports.format = function(){
     return function (collection){
         var changedCollection = [];
         var index;
-
         for (index in collection){
             var newEntry = {};
             var field;
@@ -148,7 +168,7 @@ module.exports.limit =  function() {
     return function (collection){
         var changedCollection = [];
         var i;
-        for (i = 0; i < number; i++)
+        for (i = 0; i < number && i < collection.length; i++)
         {
             changedCollection.push(collection[i]);
         }
@@ -160,35 +180,52 @@ module.exports.limit =  function() {
 module.exports.and = function (){
     var arg = [].slice.call(arguments);
     return function(collection){
-        var first = arg[0](collection);
-        var second = arg[1](collection);
-        var firstCollection = new Set(first);
-        var secondCollection = new Set(second);
-        var result = [];
-        for (var elem of firstCollection){
-            if (secondCollection.has(elem))
-            {
-                result.push(elem);
-            }
+        if (arg.length == 0)
+        {
+            return [];
         }
-        return result;
+        var current = arg[0](collection);
+        var other;
+        for (var i = 1; i < arg.length; i++) {
+            other = arg[i](collection);
+            var firstCollection = new Set(current);
+            var secondCollection = new Set(other);
+            var result = [];
+            for (var elem of firstCollection){
+                if (secondCollection.has(elem))
+                {
+                    result.push(elem);
+                }
+            }
+            current = result;
+        }
+        return current;
     }
-}
+};
 
 module.exports.or = function (){
     var arg = [].slice.call(arguments);
     return function(collection){
-        var first = arg[0];
-        var second = arg[1];
+        if (arg.length == 0)
+        {
+            return [];
+        }
         var firstCollection = new Set(arg[0](collection));
-        var secondCollection = new Set(arg[1](collection));
-        var result = new Set();
-        for (var elem of firstCollection){
-            result.add(elem);
+        var secondCollection;
+        for (var i = 1; i < arg.length; i++) {
+            secondCollection = new Set(arg[i](collection));
+            var result = new Set();
+            for (var elem of firstCollection)
+            {
+                result.add(elem);
+            }
+            for (var elem of secondCollection)
+            {
+                result.add(elem);
+            }
+            firstCollection = result;
         }
-        for (var elem of secondCollection){
-            result.add(elem);
-        }
-        return Array.from(result);
+        return Array.from(firstCollection);
     }
-}
+};
+
