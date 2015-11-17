@@ -136,5 +136,5 @@ module.exports.format = function () {
 // Вам необходимо реализовать остальные операторы:
 // select, filterIn, filterEqual, sortBy, format, limit
 
-// Будет круто, если реализуете операторы:
+// Будет круто, если реализуете операторы :
 // or и and
