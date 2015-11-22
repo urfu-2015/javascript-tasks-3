@@ -1,10 +1,7 @@
-'use strict';
-
-// Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
     var args = [].slice.call(arguments);
     args.splice(0, 1);
-    args.forEach(function (arg){
+    args.forEach(function (arg) {
         collection = arg(collection);
     });
     return collection;
@@ -21,11 +18,11 @@ module.exports.reverse = function () {
 module.exports.limit = function (n) {
     // Магия
     return function (collection) {
-        return collection.slice(0,n);
+        return collection.slice(0, n);
     };
 };
 
-module.exports.select = function() {
+module.exports.select = function () {
     var args = [].slice.call(arguments);
     var resultCollection = [];
     return function (collection) {
@@ -43,13 +40,13 @@ module.exports.select = function() {
 module.exports.filterIn = function () {
     var args = [].slice.call(arguments);
     var resultCollection = [];
-    return function (collection){
+    return function (collection) {
         collection.forEach(function (contact) {
-            args[1].forEach(function(arg){
-                if (contact[args[0]] === arg){
+            args[1].forEach(function (arg) {
+                if (contact[args[0]] === arg) {
                     resultCollection.push(contact);
                 }
-            })
+            });
         });
         return resultCollection;
     };
@@ -57,17 +54,18 @@ module.exports.filterIn = function () {
 
 module.exports.sortBy = function () {
     var args = [].slice.call(arguments);
-    return function (collection){
+    return function (collection) {
         collection.sort(checkResult);
-        if (args[1] == 'asc'){
+        if (args[1] == 'asc') {
             return collection;
-        }else{
+        } else {
             return collection.reverse();
         }
     };
 };
 
-function checkResult(firstContact, secondContact){
+
+function checkResult(firstContact, secondContact) {
     return firstContact.age - secondContact.age;
 }
 
@@ -86,8 +84,8 @@ module.exports.filterEqual = function () {
     var resultCollection = [];
     return function (collection) {
         collection.forEach(function (contact) {
-            if (contact[args[0]] == args[1]){
-                resultCollection.push(contact)
+            if (contact[args[0]] == args[1]) {
+                resultCollection.push(contact);
             }
         });
         return resultCollection;
