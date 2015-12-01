@@ -7,6 +7,7 @@ module.exports.query = function (collection) {
     for (var i = 0; i < args.length; i++) {
         collection = args[i](collection);
     }
+    return collection;
 };
 
 // Оператор reverse, который переворачивает коллекцию
@@ -25,8 +26,16 @@ module.exports.limit = function () {
         var args = [].slice.call(arguments);
         var collection = args[1];
         var changedCollection = [];
-        for (var i = 0; i < n; i++) {
-            changedCollection[i] = collection[i];
+        if (n <= collection.length) {
+            for (var i = 0; i < n; i++) {
+                changedCollection[i] = collection[i];
+            }
+        } else {
+            var i = 0;
+            while (i < collection.length) {
+                changedCollection[i] = collection[i];
+                i++;
+            }
         }
         return changedCollection;
     };
@@ -42,7 +51,9 @@ module.exports.select = function () {
         for (var i = 0; i < collection.length; i++) {
             changedCollection[i] = {};
             for (var j = 0; j < colomns.length; j++) {
-                changedCollection[i][colomns[j]] = collection[i][colomns[j]];
+                if (colomns[j] in collection[i]) {
+                    changedCollection[i][colomns[j]] = collection[i][colomns[j]];
+                }
             }
         }
         return changedCollection;
