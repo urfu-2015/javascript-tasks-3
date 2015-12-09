@@ -28,19 +28,21 @@ module.exports.limit = function (n) {
 module.exports.select = function () {
     var args = [].slice.call(arguments);
     return function (collection) {
-        collection.reduce(function (contacts, contact) {
-            return args.reduce(function (a, b) {
-                return contact[b];
+        return collection.reduce(function (contacts, contact) {
+            var currentContact = {};
+            args.forEach(function (arg) {
+                currentContact[arg] = contact[arg];
+                return currentContact;
             });
-        });
-        return collection;
+            contacts.push(currentContact);
+            return contacts;
+        }, []);
     };
 };
 
 module.exports.filterIn = function (fieldName, fieldValue) {
-    var resultCollection = [];
     return function (collection) {
-        return resultCollection = collection.filter(function (contact) {
+        return collection.filter(function (contact) {
             return fieldValue.indexOf(contact[fieldName]) != -1;
         });
     };
@@ -63,10 +65,10 @@ module.exports.sortBy = function (fieldSort, sortMethod) {
 
 module.exports.format = function (gender, firstLetter) {
     return function (collection) {
-        collection.map(function (contact) {
+        return  collection.map(function (contact) {
             contact[gender] = firstLetter(contact[gender]);
+            return contact;
         });
-        return collection;
     };
 };
 
