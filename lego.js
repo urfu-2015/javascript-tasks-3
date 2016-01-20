@@ -3,7 +3,7 @@
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function (collection /* операторы через запятую */) {
     var args = [].slice.call(arguments);
-    args.forEach(function(row, index) {
+    args.forEach(function (row, index) {
         if (typeof row === 'function') {
             collection = row(collection);
         }
@@ -25,7 +25,7 @@ module.exports.reverse = function () {
 module.exports.limit = function (n) {
     return function (collection) {
         return collection.slice(0, n);
-    }
+    };
 };
 
 module.exports.select = function () {
@@ -43,8 +43,8 @@ module.exports.select = function () {
             ret.push(obj);
         });
         return ret;
-    }
-}
+    };
+};
 
 module.exports.filterIn = function (field, needle) {
     return function (collection) {
@@ -59,8 +59,8 @@ module.exports.filterIn = function (field, needle) {
         });
 
         return ret;
-    }
-}
+    };
+};
 
 module.exports.filterEqual = function (field, equal) {
     return function (collection) {
@@ -73,37 +73,86 @@ module.exports.filterEqual = function (field, equal) {
         });
 
         return ret;
-    }
-}
+    };
+};
 
 module.exports.sortBy = function (field, orderType) {
     return function (collection) {
         collection.sort(function (a, b) {
-            if (a[field] < b[field])
-              return -1;
-            else if (a[field] > b[field])
-              return 1;
-            else
-              return 0;
+            if (a[field] < b[field]) {
+                return -1;
+            } else if (a[field] > b[field]) {
+                return 1;
+            } else {
+                return 0;
+            }
         });
-        if (orderType=='desc') {
+        if (orderType == 'desc') {
             collection = collection.reverse();
         }
 
         return collection;
-    }
-}
+    };
+};
 
 module.exports.format = function (field, callback) {
     return function (collection) {
-        collection.forEach(function(row, index) {
+        collection.forEach(function (row, index) {
             // collection[index][field] = callback(row[field]);
             row[field] = callback(row[field]);
         });
 
         return collection;
-    }
+    };
+};
+
+/**
+ * Простая функция копирования массива объектов
+ * @param  array collection
+ * @return array
+ */
+function copyCollection(collection) {
+    var ret = [];
+    collection.forEach(function (row, index) {
+        var newObject = {};
+        var keys = Object.keys(row);
+        keys.forEach(function (key, keyIndex) {
+            newObject[key] = row[key];
+        });
+        ret.push(newObject);
+    });
+    return ret;
 }
 
-// Будет круто, если реализуете операторы:
-// or и and
+module.exports.and = function () {
+    var args = [].slice.call(arguments);
+    return function (collection) {
+        args.forEach(function (row, index) {
+            if (typeof row === 'function') {
+                collection = row(collection);
+            }
+        });
+
+        return collection;
+    };
+};
+
+module.exports.or = function () {
+    var args = [].slice.call(arguments);
+    return function (collection) {
+        var ret = [];
+        args.forEach(function (row, index) {
+            if (typeof row == 'function') {
+                var collectionCopy = copyCollection(collection);
+                collectionCopy = row(collectionCopy);
+                collectionCopy.forEach(function (item, itemIndex) {
+                    if (ret.indexOf(item) === -1) {
+                        ret.push(item);
+                    }
+                });
+            }
+        });
+
+        return ret;
+    };
+};
