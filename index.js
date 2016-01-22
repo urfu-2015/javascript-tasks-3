@@ -41,8 +41,15 @@ var result = lego.query(
             lego.filterIn('favoriteFruit', ['Картофель'])
         ),
         lego.and(
+            lego.filterEqual('gender', 'Мужской'),
+            lego.filterIn('favoriteFruit', ['Картофель']),
+            lego.filterIn('name', ['Галактион'])
+        ),
+        lego.and(
             lego.filterEqual('gender', 'Женский'),
             lego.filterIn('favoriteFruit', ['Яблоко'])
         )
     )
 );
+
+console.log(result);

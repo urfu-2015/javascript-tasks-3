@@ -24,7 +24,10 @@ module.exports.reverse = function () {
 // Оператор limit, который выбирает первые N записей
 module.exports.limit = function (n) {
     return function (collection) {
-        return collection.slice(0, n);
+        if (n > 0) {
+            return collection.slice(0, n);
+        }
+        return collection;
     };
 };
 
@@ -81,10 +84,8 @@ module.exports.sortBy = function (field, orderType) {
         collection.sort(function (a, b) {
             if (a[field] < b[field]) {
                 return -1;
-            } else if (a[field] > b[field]) {
-                return 1;
             } else {
-                return 0;
+                return 1;
             }
         });
         if (orderType == 'desc') {
@@ -107,18 +108,32 @@ module.exports.format = function (field, callback) {
 };
 
 /**
+ * Функция копирования объекта
+ * @param  {Object} obj
+ * @return {Object}
+ */
+function copyObject(obj) {
+    var newObject = {};
+    var keys = Object.keys(obj);
+    keys.forEach(function (key, keyIndex) {
+        if (typeof obj[key] == 'object') {
+            newObject[key] = copyObject(obj[key]);
+        } else {
+            newObject[key] = obj[key];
+        }
+    });
+    return newObject;
+}
+
+/**
  * Простая функция копирования массива объектов
- * @param  array collection
- * @return array
+ * @param  {Object[]} collection
+ * @return {Object[]}
  */
 function copyCollection(collection) {
     var ret = [];
     collection.forEach(function (row, index) {
-        var newObject = {};
-        var keys = Object.keys(row);
-        keys.forEach(function (key, keyIndex) {
-            newObject[key] = row[key];
-        });
+        var newObject = copyObject(row);
         ret.push(newObject);
     });
     return ret;
@@ -143,9 +158,8 @@ module.exports.or = function () {
         var ret = [];
         args.forEach(function (row, index) {
             if (typeof row == 'function') {
-                var collectionCopy = copyCollection(collection);
-                collectionCopy = row(collectionCopy);
-                collectionCopy.forEach(function (item, itemIndex) {
+                var newCollection = row(collection);
+                newCollection.forEach(function (item, itemIndex) {
                     if (ret.indexOf(item) === -1) {
                         ret.push(item);
                     }
