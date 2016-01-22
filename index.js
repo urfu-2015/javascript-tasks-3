@@ -31,7 +31,6 @@ var result = lego.query(
 );
 
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
-
 var result = lego.query(
     phoneBook,
 
@@ -42,8 +41,15 @@ var result = lego.query(
             lego.filterIn('favoriteFruit', ['Картофель'])
         ),
         lego.and(
+            lego.filterEqual('gender', 'Мужской'),
+            lego.filterIn('favoriteFruit', ['Картофель']),
+            lego.filterIn('name', ['Галактион'])
+        ),
+        lego.and(
             lego.filterEqual('gender', 'Женский'),
             lego.filterIn('favoriteFruit', ['Яблоко'])
         )
     )
 );
+
+console.log(result);
