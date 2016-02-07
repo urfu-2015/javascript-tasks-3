@@ -29,21 +29,23 @@ var result = lego.query(
     // На дачу влезет примерно 10 человек
     lego.limit(10)
 );
+console.log(result);
+
 
 // Будет круто организовать две вечеринки сразу: яблочную для девушек и картофельную для парней.
 
-var result = lego.query(
-    phoneBook,
-
-    // Выбираем всех парней, которые любят картофель, и всех девушек, которые любят яблоки
-    lego.or(
-        lego.and(
-            lego.filterEqual('gender', 'Мужской'),
-            lego.filterIn('favoriteFruit', ['Картофель'])
-        ),
-        lego.and(
-            lego.filterEqual('gender', 'Женский'),
-            lego.filterIn('favoriteFruit', ['Яблоко'])
-        )
-    )
-);
+//var result = lego.query(
+//    phoneBook,
+//
+//    // Выбираем всех парней, которые любят картофель, и всех девушек, которые любят яблоки
+//    lego.or(
+//        lego.and(
+//            lego.filterEqual('gender', 'Мужской'),
+//            lego.filterIn('favoriteFruit', ['Картофель'])
+//        ),
+//        lego.and(
+//            lego.filterEqual('gender', 'Женский'),
+//            lego.filterIn('favoriteFruit', ['Яблоко'])
+//        )
+//    )
+//);
