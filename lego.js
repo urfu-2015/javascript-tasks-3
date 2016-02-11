@@ -58,6 +58,15 @@ module.exports.sortBy = function (field, type) {
     }
 };
 
+// возвращает коллекцию, в которое поле (аргумент 1), равно значению (аргумент 2)
+module.exports.filterEqual = function (field, type) {
+    return function (collection) {
+        return collection.filter(function(item){
+            return item[field] === type;
+        });
+    };
+};
+
 // А пол выведем только первой буквой для удобства
 module.exports.format = function (field, fn) {
     return function (collection) {
