@@ -21,6 +21,9 @@ var result = lego.query(
     // Отсортируем их по возрасту (но зачем?)
     lego.sortBy('age', 'asc'), // Бывает только asc (от меньшего к большему) или desc (наоборот)
 
+    // Выбираем представителей одного пола
+    lego.filterEqual('gender', 'Женский'),
+
     // А пол выведем только первой буквой для удобства
     lego.format('gender', function (value) {
         return value[0];
