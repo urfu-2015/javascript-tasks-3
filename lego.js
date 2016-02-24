@@ -2,16 +2,20 @@
 
 // Метод, который будет выполнять операции над коллекцией один за другим
 module.exports.query = function () {
-    var collection = arguments[0];
+    var args = [].slice.call(arguments);
+    var collection = args.shift();
 
-    for (var i = 1; i < arguments.length; i++) {
-        collection = arguments[i](collection);
-    }
+    var changedCollection = args.reduce(function (changedCollection, method) {
+        return method(changedCollection);
+    }, collection);
 
-    return collection;
+    return changedCollection;
 };
 
-// Оператор reverse, который переворачивает коллекцию
+/**
+ * Возвращает функцию, которая возвращает новую коллекцию, с обратным порядком
+ * @returns {Function}
+ */
 module.exports.reverse = function () {
     return function (collection) {
         var changedCollection = collection.reverse();
@@ -21,7 +25,11 @@ module.exports.reverse = function () {
     };
 };
 
-// Оператор select, который выбирает только нужные поля
+/**
+ * Возвращает функцию, которая возвращает новую коллекцию, содержащую только заданные поля
+ * @param {Object} arguments аргументы функции
+ * @returns {Function}
+ */
 module.exports.select = function () {
     var args = arguments;
 
@@ -39,7 +47,13 @@ module.exports.select = function () {
     }
 };
 
-// Обязательно выбираем тех, кто любит Яблоки и Картофель (самое важное !!!)
+/**
+ * Возвращает функцию, которая при вызове возвращает новую коллекцию,
+ * в которой поле c именем field содержит значение, встречающееся в массиве type
+ * @param {String} field
+ * @param {String[]} type
+ * @returns {Function}
+ */
 module.exports.filterIn = function (field, type) {
     return function (collection) {
         return collection.filter(function(item){
@@ -48,17 +62,40 @@ module.exports.filterIn = function (field, type) {
     };
 };
 
-// Отсортируем их по возрасту
+/**
+ * Возвращает функцию, которая при вызове возвращает новую коллекцию,
+ * которая сортирует коллекцию по значеню в переданном поле
+ * @param {String} field имя поля по которому сортируем
+ * @param {String} type порядок сортировки, может быть asc или desc
+ * @returns {Function}
+ */
 module.exports.sortBy = function (field, type) {
     return function (collection) {
-        return collection.sort(function (a, b) {
-            var result = Number(a[field]) - Number(b[field]);
-            return type === 'desc' ? -result : result;
-        });
+        return collection.sort(compareNumbers.bind(this, field, type));
     }
 };
 
-// возвращает коллекцию, в которое поле (аргумент 1), равно значению (аргумент 2)
+/**
+ * Сравнивает числа
+ * @param {Object} arguments аргументы функции
+ * @param {String} field имя поля по которому сортируем
+ * @param {String} type порядок сортировки
+ * @param {Object} a 1 объект сравнения
+ * @param {Object} b 2 объект сравнения
+ * @returns {Number} -1|0|1
+ */
+function compareNumbers (field, type, a, b) {
+    var result = Number(a[field]) - Number(b[field]);
+    return type === 'desc' ? -result : result;
+}
+
+/**
+ * Возвращает функцию, которая при вызове возвращает новую коллекцию,
+ * в которой поле (аргумент 1), равно значению (аргумент 2)
+ * @param {String} field
+ * @param {String} type
+ * @returns {Function}
+ */
 module.exports.filterEqual = function (field, type) {
     return function (collection) {
         return collection.filter(function(item){
@@ -67,7 +104,13 @@ module.exports.filterEqual = function (field, type) {
     };
 };
 
-// А пол выведем только первой буквой для удобства
+/**
+ * Возвращает функцию, которая при вызове возвращает новую коллекцию,
+ * с отформатированным значением поля при помощи переданной функции
+ * @param {String} field
+ * @param {Function} fn
+ * @returns {Function}
+ */
 module.exports.format = function (field, fn) {
     return function (collection) {
         return collection.map(function (item) {
@@ -78,12 +121,14 @@ module.exports.format = function (field, fn) {
     };
 };
 
-// Оператор limit, который выбирает первые N записей
+/**
+ * Возвращает функцию, которая при вызове возвращает новую коллекцию с первыми N записями
+ * @param {Number} n
+ * @returns {Function}
+ */
 module.exports.limit = function (n) {
     return function (collection) {
-        return collection.filter(function(item, i){
-            return i < n;
-        });
+        return collection.slice(0, n);
     };
 };
 
